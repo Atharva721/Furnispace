@@ -29,6 +29,9 @@
                     <span class="badge badge-pending">{{ pending_resale }}</span>
                 {% endif %}
             </a>
+            <a href="{{ url_for('admin.logout') }}" class="btn btn-outline btn-sm" style="border: 1px solid var(--border-strong); color: var(--accent-clay);" title="Sign out of Administrator Session">
+                🚪 Sign Out
+            </a>
         </div>
     </div>
 

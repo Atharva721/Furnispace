@@ -36,7 +36,7 @@ def test_login_logout(client):
 
 
 def test_customer_cannot_access_admin_portal(client):
-    """Customer role cannot access /admin/ routes and receives 403 or redirect."""
+    """Customer role cannot access /admin/ routes and receives 403."""
     # Log in as customer
     client.post('/auth/login', data={
         'identifier': 'john_doe',
@@ -44,20 +44,60 @@ def test_customer_cannot_access_admin_portal(client):
     }, follow_redirects=True)
 
     res = client.get('/admin/', follow_redirects=False)
-    assert res.status_code in [302, 403]
+    assert res.status_code == 403 or (res.status_code == 302 and '/admin' not in res.location)
 
     res_followed = client.get('/admin/', follow_redirects=True)
-    assert b"Administrator privileges required" in res_followed.data or res_followed.status_code == 403
+    assert res_followed.status_code == 403 or b"Administrator privileges required" in res_followed.data
 
 
-def test_admin_access_allowed(client):
-    """Admin can log in and successfully load /admin/ dashboard."""
-    client.post('/auth/login', data={
-        'identifier': 'admin',
+def test_dedicated_admin_login_success(client):
+    """Administrator enters email and password on dedicated /admin/login page and gains access."""
+    # GET renders page
+    res_get = client.get('/admin/login')
+    assert res_get.status_code == 200
+    assert b"Administrator Login" in res_get.data
+    assert b"admin@furnispace.local" in res_get.data
+
+    # POST with valid admin credentials
+    res_post = client.post('/admin/login', data={
+        'email': 'admin@furnispace.local',
         'password': 'AdminPassword123!'
     }, follow_redirects=True)
+    assert res_post.status_code == 200
+    assert b"Overview Dashboard" in res_post.data
+    assert b"Administrative Portal" in res_post.data
 
-    res = client.get('/admin/', follow_redirects=True)
+    # Admin Logout
+    res_logout = client.get('/admin/logout', follow_redirects=True)
+    assert res_logout.status_code == 200
+    assert b"Administrator session ended successfully" in res_logout.data
+
+
+def test_dedicated_admin_login_rejects_invalid_credentials(client):
+    """Dedicated /admin/login rejects incorrect passwords or unknown emails."""
+    # Unknown email
+    res1 = client.post('/admin/login', data={
+        'email': 'nonexistent@furnispace.local',
+        'password': 'WrongPassword123!'
+    }, follow_redirects=True)
+    assert res1.status_code == 200
+    assert b"Administrator account not found" in res1.data
+
+    # Wrong password for existing admin
+    res2 = client.post('/admin/login', data={
+        'email': 'admin@furnispace.local',
+        'password': 'WrongPassword123!'
+    }, follow_redirects=True)
+    assert res2.status_code == 200
+    assert b"Invalid administrator credentials" in res2.data
+
+
+def test_dedicated_admin_login_rejects_normal_customer(client):
+    """Dedicated /admin/login rejects accounts that do not have administrator role."""
+    res = client.post('/admin/login', data={
+        'email': 'john@example.com',
+        'password': 'CustomerPass123!'
+    }, follow_redirects=True)
     assert res.status_code == 200
-    assert b"Overview Dashboard" in res.data
-    assert b"Administrative Portal" in res.data
+    assert b"This account does not possess administrator privileges" in res.data
+

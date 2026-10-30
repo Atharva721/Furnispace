@@ -83,6 +83,9 @@ def create_app(config_class=Config):
 app = create_app()
 
 if __name__ == '__main__':
-    # Local development server
+    # Accessible through VS Code port forwarding using appropriate host configuration
+    host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='127.0.0.1', port=port, debug=True)
+    # Disable debug mode by default when exposing the application
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() in ['true', '1']
+    app.run(host=host, port=port, debug=debug)

@@ -71,7 +71,10 @@
 
                 <!-- User Account Actions -->
                 {% if current_user %}
-                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="{{ url_for('resale.submit') }}" class="btn btn-primary btn-sm" title="Create Resale Listing" id="nav-create-listing-btn">
+                            + Create Listing
+                        </a>
                         <a href="{{ url_for('cart.orders') }}" class="btn btn-secondary btn-sm" title="My Orders">
                             📦 Orders
                         </a>
@@ -153,12 +156,12 @@
                 <div>
                     <h4>Demo & Academic</h4>
                     <p style="font-size: 0.85rem; color: #9C9488; margin-bottom: 0.8rem;">
-                        This platform operates in demo mode. All checkout and payment processes are simulated.
+                        This platform operates in simulated demonstration mode. Checkout and payment processes require zero banking credentials.
                     </p>
-                    <div style="font-size: 0.82rem; background: rgba(255,255,255,0.06); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1);">
-                        <strong>Admin Credentials:</strong><br>
-                        Username: <code>admin</code><br>
-                        Password: <code>AdminPassword123!</code>
+                    <div style="margin-top: 1rem;">
+                        <a href="{{ url_for('admin.login') }}" style="display: inline-block; font-size: 0.82rem; padding: 0.5rem 0.9rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-sm); color: #EFECE6; text-decoration: none;">
+                            🔒 Staff &amp; Administrator Portal &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

@@ -97,3 +97,78 @@ def test_resale_submission_and_moderation_lifecycle(client, app):
     # Public marketplace: must NOT show rejected item
     res_pub_rejected = client.get('/resale/')
     assert b"Broken Chair For Parts" not in res_pub_rejected.data
+
+
+def test_resale_photo_upload_and_validation(client, app):
+    """Verifies that customers can upload valid image files (PNG/JPG), and invalid files are rejected."""
+    import io
+
+    # Log in customer
+    client.post('/auth/login', data={
+        'identifier': 'john_doe',
+        'password': 'CustomerPass123!'
+    }, follow_redirects=True)
+
+    # 1. Test unsupported file format (.pdf)
+    bad_file = (io.BytesIO(b"fake pdf content"), 'furniture_receipt.pdf')
+    res_bad = client.post('/resale/submit', data={
+        'title': 'Test Item Bad Format',
+        'category': 'tables',
+        'description': 'Description text here',
+        'asking_price': '2500',
+        'condition': 'Good',
+        'location': 'Bangalore',
+        'contact_info': 'john@example.com',
+        'image_file': bad_file
+    }, content_type='multipart/form-data', follow_redirects=True)
+    assert res_bad.status_code == 200
+    assert b"Unsupported image format" in res_bad.data
+
+    # 2. Test valid image file (.png)
+    png_header = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4"
+    valid_file = (io.BytesIO(png_header), 'coffee_table.png')
+    res_good = client.post('/resale/submit', data={
+        'title': 'Solid Oak Nesting Coffee Table',
+        'category': 'tables',
+        'description': 'Stunning solid oak nesting tables, bought last year, selling due to move.',
+        'asking_price': '4800',
+        'condition': 'Like New',
+        'location': 'Whitefield, Bangalore',
+        'contact_info': '9876500000 | john@test.com',
+        'image_file': valid_file
+    }, content_type='multipart/form-data', follow_redirects=True)
+    assert res_good.status_code == 200
+    assert b"Your resale listing has been submitted" in res_good.data
+
+    with app.app_context():
+        uploaded_listing = ResaleListing.query.filter_by(title='Solid Oak Nesting Coffee Table').first()
+        assert uploaded_listing is not None
+        assert uploaded_listing.status == 'Pending'
+        assert '/static/uploads/resale_' in uploaded_listing.image_url
+
+    # 3. Test invalid price (<= 0)
+    res_bad_price = client.post('/resale/submit', data={
+        'title': 'Item with Invalid Price',
+        'category': 'chairs',
+        'description': 'Description text',
+        'asking_price': '-500',
+        'condition': 'Fair',
+        'location': 'Delhi',
+        'contact_info': 'seller@test.com',
+        'image_url': 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80'
+    }, follow_redirects=True)
+    assert b"Please enter a valid asking price greater than 0" in res_bad_price.data
+
+    # 4. Test missing photo completely
+    res_no_photo = client.post('/resale/submit', data={
+        'title': 'Item without Photo',
+        'category': 'chairs',
+        'description': 'Description text',
+        'asking_price': '1500',
+        'condition': 'Good',
+        'location': 'Delhi',
+        'contact_info': 'seller@test.com',
+        'image_url': ''
+    }, follow_redirects=True)
+    assert b"Please provide a furniture photograph" in res_no_photo.data
+

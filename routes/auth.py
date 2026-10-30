@@ -30,11 +30,11 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         user = get_current_user()
         if user is None:
-            flash("Admin authentication required.", "danger")
-            return redirect(url_for('auth.login', next=request.url))
+            flash("Administrator login required to access the Admin Portal.", "warning")
+            return redirect(url_for('admin.login', next=request.url))
         if not user.is_admin():
             flash("Access denied: Administrator privileges required.", "danger")
-            return redirect(url_for('shop.index')), 403
+            return render_template('errors/403.html'), 403
         return f(*args, **kwargs)
     return decorated_function
 

@@ -85,37 +85,62 @@ def submit():
         contact_info = request.form.get('contact_info', '').strip()
         image_url = request.form.get('image_url', '').strip()
 
-        # Validation
+        form_data = {
+            'title': title,
+            'category': category,
+            'description': description,
+            'asking_price': price_raw,
+            'condition': condition,
+            'location': location,
+            'contact_info': contact_info,
+            'image_url': image_url
+        }
+
+        # Validate mandatory text fields
         if not title or not category or not description or not location or not contact_info:
             flash("Please complete all required listing fields.", "danger")
-            return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS)
+            return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data=form_data)
 
+        # Validate asking price
         try:
             asking_price = int(price_raw)
             if asking_price <= 0:
                 raise ValueError()
-        except ValueError:
+        except (ValueError, TypeError):
             flash("Please enter a valid asking price greater than 0.", "danger")
-            return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS)
+            return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data=form_data)
 
-        # Handle optional image file upload or image URL
+        # Validate and handle image upload or URL
         final_image_url = image_url
-        if 'image_file' in request.files:
+        has_file = 'image_file' in request.files and request.files['image_file'].filename
+
+        if has_file:
             file = request.files['image_file']
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                unique_name = f"resale_{uuid.uuid4().hex[:8]}_{filename}"
+            if not allowed_file(file.filename):
+                flash("Unsupported image format. Allowed formats are JPG, JPEG, PNG, and WEBP.", "danger")
+                return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data=form_data)
+
+            try:
+                raw_filename = secure_filename(file.filename)
+                ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
+                if not raw_filename:
+                    raw_filename = f"upload.{ext}"
+                unique_name = f"resale_{uuid.uuid4().hex[:10]}_{raw_filename}"
                 upload_dir = current_app.config['UPLOAD_FOLDER']
                 os.makedirs(upload_dir, exist_ok=True)
                 file_path = os.path.join(upload_dir, unique_name)
                 file.save(file_path)
                 final_image_url = url_for('static', filename=f"uploads/{unique_name}")
+            except Exception as e:
+                flash(f"Image upload failed: {str(e)}", "danger")
+                return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data=form_data)
 
+        # Ensure a furniture photograph is provided
         if not final_image_url:
-            # High quality fallback placeholder
-            final_image_url = "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80"
+            flash("Please provide a furniture photograph by uploading a photo or entering an image link.", "danger")
+            return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data=form_data)
 
-        # Create listing with status 'Pending'
+        # Create listing with status strictly 'Pending'
         new_listing = ResaleListing(
             user_id=user.id,
             title=title,
@@ -134,7 +159,7 @@ def submit():
         flash("Your resale listing has been submitted! It is now Pending review by our moderation team.", "success")
         return redirect(url_for('resale.my_listings'))
 
-    return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS)
+    return render_template('resale/submit.html', categories=RESALE_CATEGORIES, conditions=CONDITIONS, form_data={})
 
 
 @resale_bp.route('/my-listings')

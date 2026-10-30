@@ -14,8 +14,8 @@
             </p>
         </div>
         <div style="display: flex; gap: 0.8rem;">
-            <a href="{{ url_for('resale.submit') }}" class="btn btn-primary" id="sell-furniture-btn">
-                + Sell Your Furniture
+            <a href="{{ url_for('resale.submit') }}" class="btn btn-primary" id="create-listing-btn">
+                + Create Resale Listing
             </a>
             {% if current_user %}
                 <a href="{{ url_for('resale.my_listings') }}" class="btn btn-secondary">

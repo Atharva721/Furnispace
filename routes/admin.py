@@ -1,12 +1,69 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, g
 from models import db, User, Product, Order, OrderItem, ResaleListing
-from routes.auth import admin_required
+from routes.auth import admin_required, get_current_user
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 ORDER_STATUSES = ['Placed', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']
 CATEGORIES = ['sofas', 'beds', 'tables', 'chairs', 'wardrobes', 'storage', 'lighting', 'decor']
 STYLES = ['Modern', 'Minimalist', 'Traditional', 'Contemporary']
+
+
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """Dedicated Administrator Login page with database authentication."""
+    current_user = get_current_user()
+    if current_user and current_user.is_admin():
+        return redirect(url_for('admin.dashboard'))
+
+    next_url = request.args.get('next')
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        next_url = request.form.get('next') or next_url
+
+        if not email or not password:
+            flash("Please enter both administrator email address and password.", "danger")
+            return render_template('admin/login.html', next=next_url)
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash("Administrator account not found with this email address.", "danger")
+            return render_template('admin/login.html', next=next_url)
+
+        if not user.check_password(password):
+            flash("Invalid administrator credentials. Access denied.", "danger")
+            return render_template('admin/login.html', next=next_url)
+
+        if not user.is_admin():
+            flash("Access denied: This account does not possess administrator privileges.", "danger")
+            return render_template('admin/login.html', next=next_url)
+
+        # Successful administrator authentication
+        session.clear()
+        session['user_id'] = user.id
+        session['username'] = user.username
+        session['role'] = user.role
+        g.current_user = user
+
+        flash(f"Administrator access granted. Welcome to the Command Center, {user.full_name or user.username}!", "success")
+
+        if next_url and next_url.startswith('/admin') and next_url != url_for('admin.login'):
+            return redirect(next_url)
+        return redirect(url_for('admin.dashboard'))
+
+    return render_template('admin/login.html', next=next_url)
+
+
+@admin_bp.route('/logout', methods=['GET', 'POST'])
+def logout():
+    """Securely ends the administrator session."""
+    session.clear()
+    g.current_user = None
+    flash("Administrator session ended successfully.", "info")
+    return redirect(url_for('admin.login'))
 
 
 @admin_bp.route('/')

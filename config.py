@@ -18,9 +18,10 @@ class Config:
     # Upload configuration
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     
-    # Demo admin credentials
-    DEFAULT_ADMIN_USERNAME = 'admin'
-    DEFAULT_ADMIN_EMAIL = 'admin@furnispace.local'
-    DEFAULT_ADMIN_PASSWORD = 'AdminPassword123!'
+    # Configurable administrator credentials via environment variables
+    DEFAULT_ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+    DEFAULT_ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@furnispace.local')
+    DEFAULT_ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'AdminPassword123!')
+

@@ -78,3 +78,21 @@ def test_advanced_search_and_price_filters(client):
     # Higher priced sofa (24999) should not appear
     assert b"Nordic Velvet 3-Seater Sofa" not in res_price.data
 
+
+def test_all_products_have_valid_photos_and_accurate_categories(client, app):
+    """Verifies that every seeded product has a distinct, valid photo and assigned to one of the 8 categories."""
+    valid_categories = {'sofas', 'beds', 'tables', 'chairs', 'wardrobes', 'storage', 'lighting', 'decor'}
+    with app.app_context():
+        products = Product.query.filter_by(is_active=True).all()
+        assert len(products) >= 24
+
+        seen_images = set()
+        for prod in products:
+            assert prod.category in valid_categories, f"Invalid category {prod.category} for {prod.name}"
+            assert prod.image_url and len(prod.image_url.strip()) > 10, f"Missing image for {prod.name}"
+            assert prod.image_url.startswith('http://') or prod.image_url.startswith('https://') or prod.image_url.startswith('/static/')
+            # Check distinct image assignment
+            assert prod.image_url not in seen_images, f"Duplicate image URL detected for {prod.name}"
+            seen_images.add(prod.image_url)
+
+

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Login | FurniSpace Portal{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3.5rem; padding-bottom: 5rem; max-width: 480px;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background-color: var(--bg-muted); border-radius: 50%; font-size: 2rem; margin-bottom: 1rem; border: 2px solid var(--accent-clay);">
+            🔒
+        </div>
+        <span class="product-category" style="color: var(--accent-clay); letter-spacing: 0.1em;">Restricted Access</span>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Administrator Login</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Please enter your administrator credentials to access the FurniSpace Command Center.
+        </p>
+    </div>
+
+    <div class="card" style="padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+        <form method="POST" action="{{ url_for('admin.login') }}" autocomplete="off">
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div class="form-group" style="margin-bottom: 1.4rem;">
+                <label for="admin-email" class="form-label">Administrator Email Address *</label>
+                <input 
+                    type="email" 
+                    id="admin-email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="admin@furnispace.local" 
+                    required 
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.8rem;">
+                <label for="admin-password" class="form-label">Password *</label>
+                <input 
+                    type="password" 
+                    id="admin-password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter administrator password" 
+                    required
+                >
+            </div>
+
+            <div style="background-color: var(--bg-muted); border-radius: var(--radius-sm); padding: 0.9rem; margin-bottom: 1.8rem; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; border-left: 3px solid var(--accent-clay);">
+                🛡️ <strong>Security Verification:</strong> This portal authenticates against database records with salted password hashing. Standard customer accounts cannot log in here.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="admin-login-btn">
+                Authenticate &amp; Enter Portal &rarr;
+            </button>
+        </form>
+
+        <div style="margin-top: 1.8rem; text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+            <a href="{{ url_for('auth.login') }}" style="color: var(--accent-olive); text-decoration: underline;">
+                &larr; Switch to Customer Sign In
+            </a>
+            <span style="margin: 0 0.5rem;">&bull;</span>
+            <a href="{{ url_for('shop.index') }}" style="color: var(--text-muted);">
+                Return to Storefront
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -47,7 +47,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Cognac Brown",
         "dimensions": "W 220cm x D 95cm x H 78cm",
         "stock": 4,
-        "image_url": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?auto=format&fit=crop&w=800&q=80",
         "room_types": "Living Room,Study Room",
         "style": "Traditional",
         "is_active": True
@@ -77,7 +77,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Charcoal Grey",
         "dimensions": "W 190cm x L 215cm x H 115cm",
         "stock": 7,
-        "image_url": "https://images.unsplash.com/photo-1540518614846-7ede433c4b18?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80",
         "room_types": "Bedroom",
         "style": "Modern",
         "is_active": True
@@ -151,7 +151,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Natural Beech",
         "dimensions": "W 55cm x D 52cm x H 76cm",
         "stock": 14,
-        "image_url": "https://images.unsplash.com/photo-1580481077197-0335e23970b8?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80",
         "room_types": "Dining Room,Study Room",
         "style": "Minimalist",
         "is_active": True
@@ -165,7 +165,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Saddle Tan",
         "dimensions": "W 65cm x D 65cm x H 105-115cm",
         "stock": 9,
-        "image_url": "https://images.unsplash.com/photo-1580481077197-0335e23970b8?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80",
         "room_types": "Study Room",
         "style": "Modern",
         "is_active": True
@@ -223,7 +223,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Rich Dark Teak",
         "dimensions": "W 120cm x D 58cm x H 195cm",
         "stock": 3,
-        "image_url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=800&q=80",
         "room_types": "Bedroom",
         "style": "Traditional",
         "is_active": True
@@ -253,7 +253,7 @@ SAMPLE_PRODUCTS = [
         "colour": "Golden Oak & Matte Black",
         "dimensions": "W 100cm x D 35cm x H 180cm",
         "stock": 10,
-        "image_url": "https://images.unsplash.com/photo-1594653245465-985653b1b630?auto=format&fit=crop&w=800&q=80",
+        "image_url": "https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?auto=format&fit=crop&w=800&q=80",
         "room_types": "Study Room,Living Room",
         "style": "Minimalist",
         "is_active": True
@@ -369,18 +369,27 @@ def seed_database(app):
         db.create_all()
 
         # Seed Admin user if not exists
-        admin = User.query.filter_by(username='admin').first()
+        admin_username = app.config.get('DEFAULT_ADMIN_USERNAME', 'admin')
+        admin_email = app.config.get('DEFAULT_ADMIN_EMAIL', 'admin@furnispace.local')
+        admin_password = app.config.get('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
+
+        admin = User.query.filter_by(username=admin_username).first()
         if not admin:
             admin = User(
-                username='admin',
-                email='admin@furnispace.local',
+                username=admin_username,
+                email=admin_email,
                 role='admin',
                 full_name='FurniSpace Administrator',
                 phone='+91 98765 43210',
                 address='FurniSpace HQ, Design District'
             )
-            admin.set_password('AdminPassword123!')
+            admin.set_password(admin_password)
             db.session.add(admin)
+        else:
+            # Ensure admin role is set
+            admin.role = 'admin'
+            if not admin.email:
+                admin.email = admin_email
 
         # Seed Demo Customers
         demo_customer = User.query.filter_by(username='john_doe').first()
@@ -411,12 +420,24 @@ def seed_database(app):
 
         db.session.commit()
 
-        # Seed Products if table is empty
-        if Product.query.count() == 0:
-            for item in SAMPLE_PRODUCTS:
+        # Synchronize Products: insert if missing, update image_url & attributes if existing
+        for item in SAMPLE_PRODUCTS:
+            existing_prod = Product.query.filter_by(name=item['name']).first()
+            if existing_prod:
+                existing_prod.image_url = item['image_url']
+                existing_prod.category = item['category']
+                existing_prod.description = item['description']
+                existing_prod.price = item['price']
+                existing_prod.material = item['material']
+                existing_prod.colour = item['colour']
+                existing_prod.dimensions = item['dimensions']
+                existing_prod.room_types = item['room_types']
+                existing_prod.style = item['style']
+                existing_prod.is_active = item['is_active']
+            else:
                 product = Product(**item)
                 db.session.add(product)
-            db.session.commit()
+        db.session.commit()
 
         # Seed Resale Listings if table is empty
         if ResaleListing.query.count() == 0:
@@ -444,7 +465,7 @@ def seed_database(app):
                 condition="Like New",
                 location="Koregaon Park, Pune",
                 contact_info="sarah.seller@example.com | 9988776655",
-                image_url="https://images.unsplash.com/photo-1580481077197-0335e23970b8?auto=format&fit=crop&w=800&q=80",
+                image_url="https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80",
                 status="Pending"
             )
             # 1 Rejected
@@ -457,11 +478,20 @@ def seed_database(app):
                 condition="Fair",
                 location="Bangalore",
                 contact_info="john@example.com",
-                image_url="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
+                image_url="https://images.unsplash.com/photo-1589834390005-5d4fb9bf3d32?auto=format&fit=crop&w=800&q=80",
                 status="Rejected",
                 admin_notes="Item condition does not meet quality standards for resale."
             )
             db.session.add_all([listing1, listing2, listing3])
+            db.session.commit()
+        else:
+            # Update existing seed listings with verified images
+            l2 = ResaleListing.query.filter_by(title="Grey Ergonomic Mesh Study Chair").first()
+            if l2:
+                l2.image_url = "https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80"
+            l3 = ResaleListing.query.filter_by(title="Damaged Fabric Bean Bag").first()
+            if l3:
+                l3.image_url = "https://images.unsplash.com/photo-1589834390005-5d4fb9bf3d32?auto=format&fit=crop&w=800&q=80"
             db.session.commit()
 
         print("Database initialized and seeded successfully!")

@@ -16,7 +16,15 @@
         <form method="POST" action="{{ url_for('resale.submit') }}" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="title" class="form-label">Listing Title *</label>
-                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Mid-Century Solid Oak Coffee Table" required>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    class="form-control" 
+                    placeholder="e.g. Mid-Century Solid Oak Coffee Table" 
+                    value="{{ form_data.title if form_data else '' }}"
+                    required
+                >
             </div>
 
             <div class="grid-2" style="gap: 1rem;">
@@ -26,7 +34,9 @@
                         <option value="">Select Category...</option>
                         {% for cat_id, cat_name in categories %}
                             {% if cat_id != 'all' %}
-                                <option value="{{ cat_id }}">{{ cat_name }}</option>
+                                <option value="{{ cat_id }}" {% if form_data and form_data.category == cat_id %}selected{% endif %}>
+                                    {{ cat_name }}
+                                </option>
                             {% endif %}
                         {% endfor %}
                     </select>
@@ -36,7 +46,9 @@
                     <label for="condition" class="form-label">Condition *</label>
                     <select id="condition" name="condition" class="form-select" required>
                         {% for cond in conditions %}
-                            <option value="{{ cond }}">{{ cond }}</option>
+                            <option value="{{ cond }}" {% if form_data and form_data.condition == cond %}selected{% endif %}>
+                                {{ cond }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -44,49 +56,160 @@
 
             <div class="form-group">
                 <label for="description" class="form-label">Detailed Description *</label>
-                <textarea id="description" name="description" class="form-control" style="min-height: 100px;" placeholder="Describe dimensions, wood species, any minor cosmetic patina, reason for selling..." required></textarea>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    class="form-control" 
+                    style="min-height: 100px;" 
+                    placeholder="Describe dimensions, wood species, any minor cosmetic patina, reason for selling..." 
+                    required
+                >{{ form_data.description if form_data else '' }}</textarea>
             </div>
 
             <div class="grid-2" style="gap: 1rem;">
                 <div class="form-group">
                     <label for="asking_price" class="form-label">Asking Price (₹) *</label>
-                    <input type="number" id="asking_price" name="asking_price" class="form-control" placeholder="e.g. 4500" min="1" required>
+                    <input 
+                        type="number" 
+                        id="asking_price" 
+                        name="asking_price" 
+                        class="form-control" 
+                        placeholder="e.g. 4500" 
+                        min="1" 
+                        value="{{ form_data.asking_price if form_data else '' }}"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="location" class="form-label">Location (Neighbourhood & City) *</label>
-                    <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Indiranagar, Bangalore" required>
+                    <input 
+                        type="text" 
+                        id="location" 
+                        name="location" 
+                        class="form-control" 
+                        placeholder="e.g. Indiranagar, Bangalore" 
+                        value="{{ form_data.location if form_data else '' }}"
+                        required
+                    >
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="contact_info" class="form-label">Public Contact Details (Phone / Email) *</label>
-                <input type="text" id="contact_info" name="contact_info" class="form-control" placeholder="e.g. seller@example.com | 9876543210" required>
+                <input 
+                    type="text" 
+                    id="contact_info" 
+                    name="contact_info" 
+                    class="form-control" 
+                    placeholder="e.g. seller@example.com | 9876543210" 
+                    value="{{ form_data.contact_info if form_data else '' }}"
+                    required
+                >
             </div>
 
-            <!-- Image Options: URL or File Upload -->
-            <div class="form-group">
-                <label for="image_url" class="form-label">Photo Image URL</label>
-                <input type="url" id="image_url" name="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-...">
-                <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">
-                    Or provide a direct image link from an image host.
-                </span>
+            <!-- Image Upload Options -->
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; margin-bottom: 0.8rem; color: var(--accent-olive);">
+                    📸 Furniture Photograph (Required)
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="image_file" class="form-label">Upload Photo from Device (JPG, JPEG, PNG, WEBP)</label>
+                    <input 
+                        type="file" 
+                        id="image_file" 
+                        name="image_file" 
+                        class="form-control" 
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    >
+                    <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.3rem;">
+                        Supported formats: JPG, JPEG, PNG, WEBP (Maximum size: 16 MB).
+                    </span>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0; font-size: 0.82rem; color: var(--text-muted);">
+                    &mdash; OR &mdash;
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="image_url" class="form-label">Direct Image Link / Photo URL</label>
+                    <input 
+                        type="url" 
+                        id="image_url" 
+                        name="image_url" 
+                        class="form-control" 
+                        placeholder="https://images.unsplash.com/photo-..." 
+                        value="{{ form_data.image_url if form_data else '' }}"
+                    >
+                </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 2rem;">
-                <label for="image_file" class="form-label">Or Upload Image File (PNG, JPG, WEBP)</label>
-                <input type="file" id="image_file" name="image_file" class="form-control" accept="image/*">
+            <!-- Live Image Preview Box -->
+            <div id="image-preview-wrapper" style="display: none; margin-bottom: 1.8rem; text-align: center; background: var(--bg-muted); border-radius: var(--radius-sm); padding: 1rem;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-olive); margin-bottom: 0.5rem;">
+                    ✓ Selected Photograph Preview
+                </div>
+                <div style="max-width: 300px; height: 200px; margin: 0 auto; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-strong);">
+                    <img id="image-preview" src="" alt="Selected Furniture Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
             </div>
 
             <!-- Moderation Notice -->
-            <div style="background-color: var(--bg-muted); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 2rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
-                ℹ️ <strong>Curation Policy:</strong> To maintain quality and trust, all new resale listings start in <strong>Pending</strong> review. Once our administration team verifies your photos and details, your piece will appear on the public marketplace.
+            <div style="background-color: var(--bg-muted); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 2rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; border-left: 3px solid var(--accent-olive);">
+                ℹ️ <strong>Curation Policy:</strong> To maintain quality and buyer trust, all newly created listings initially receive a <strong>Pending</strong> review status. Once our moderation team approves your piece, it will automatically appear live on the public resale marketplace.
             </div>
 
             <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-listing-btn">
-                Submit Listing for Review &rarr;
+                Submit Listing for Moderation Review &rarr;
             </button>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('image_file');
+    const urlInput = document.getElementById('image_url');
+    const previewWrapper = document.getElementById('image-preview-wrapper');
+    const previewImg = document.getElementById('image-preview');
+
+    function updatePreview(src) {
+        if (src) {
+            previewImg.src = src;
+            previewWrapper.style.display = 'block';
+        } else {
+            previewWrapper.style.display = 'none';
+        }
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePreview(e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    if (urlInput) {
+        urlInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+                updatePreview(val);
+            }
+        });
+
+        // Initialize preview if URL was prefilled
+        if (urlInput.value.trim()) {
+            updatePreview(urlInput.value.trim());
+        }
+    }
+});
+</script>
 {% endblock %}
