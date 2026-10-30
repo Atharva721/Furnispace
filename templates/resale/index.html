@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Resale Marketplace | FurniSpace Pre-Loved{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <!-- Resale Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="product-category">Circular Economy</span>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Pre-Loved Resale Market</h1>
+            <p style="color: var(--text-muted); max-width: 650px;">
+                Verified peer-to-peer used furniture curated by our moderation team. Find unique pieces, prevent landfill waste, and buy directly from design enthusiasts.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.8rem;">
+            <a href="{{ url_for('resale.submit') }}" class="btn btn-primary" id="sell-furniture-btn">
+                + Sell Your Furniture
+            </a>
+            {% if current_user %}
+                <a href="{{ url_for('resale.my_listings') }}" class="btn btn-secondary">
+                    My Listings
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding: 1.5rem; margin-bottom: 2.5rem; background-color: var(--bg-surface);">
+        <form method="GET" action="{{ url_for('resale.index') }}">
+            <div style="display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="q" class="form-label">Search Pre-Loved</label>
+                    <input type="text" id="q" name="q" class="form-control" placeholder="Search tables, chairs, city..." value="{{ search_query }}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="category" class="form-label">Category</label>
+                    <select id="category" name="category" class="form-select">
+                        {% for cat_id, cat_name in categories %}
+                            <option value="{{ cat_id }}" {% if current_category == cat_id %}selected{% endif %}>
+                                {{ cat_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="condition" class="form-label">Condition</label>
+                    <select id="condition" name="condition" class="form-select">
+                        <option value="">All Conditions</option>
+                        {% for cond in conditions %}
+                            <option value="{{ cond }}" {% if current_condition == cond %}selected{% endif %}>{{ cond }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="max_price" class="form-label">Max Price (₹)</label>
+                    <input type="number" id="max_price" name="max_price" class="form-control" placeholder="e.g. 10000" value="{{ max_price or '' }}">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">Filter</button>
+                    {% if current_category != 'all' or search_query or current_condition or max_price %}
+                        <a href="{{ url_for('resale.index') }}" class="btn btn-secondary" style="height: 42px; margin-left: 0.3rem;">✕</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Listings Grid -->
+    {% if listings %}
+        <div class="grid-3" style="gap: 2rem; margin-bottom: 4rem;">
+            {% for item in listings %}
+                <div class="card product-card">
+                    <div class="product-img-wrapper">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}" class="product-img" loading="lazy">
+                        <div class="product-badges">
+                            <span class="badge badge-olive">{{ item.condition }}</span>
+                            <span class="badge badge-approved">✓ Verified</span>
+                        </div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-category">{{ item.category }} &bull; 📍 {{ item.location }}</span>
+                        <h3 class="product-title">{{ item.title }}</h3>
+                        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                            {{ item.description }}
+                        </p>
+                        
+                        <div style="background-color: var(--bg-muted); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.82rem; margin-bottom: 1rem;">
+                            <strong>Seller Contact:</strong><br>
+                            <span style="color: var(--text-main); font-weight: 500;">{{ item.contact_info }}</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-subtle);">
+                            <div>
+                                <span style="font-size: 0.75rem; color: var(--text-light); display: block;">ASKING PRICE</span>
+                                <span class="product-price">₹{{ "{:,}".format(item.asking_price) }}</span>
+                            </div>
+                            <span class="badge badge-outline" style="font-size: 0.8rem;">
+                                Posted {{ item.created_at.strftime('%d %b') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center; margin-bottom: 4rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+            <h3>No pre-loved listings match your search</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                Be the first to list a furniture item or reset your filter settings.
+            </p>
+            <a href="{{ url_for('resale.submit') }}" class="btn btn-primary">
+                List Furniture For Sale
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}List Furniture For Sale | FurniSpace Resale{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; max-width: 680px; margin-bottom: 4rem;">
+    <div style="margin-bottom: 2rem;">
+        <span class="product-category">Sustainable Resale</span>
+        <h1 style="font-size: 2.4rem;">List Your Furniture For Sale</h1>
+        <p style="color: var(--text-muted);">
+            Give your furniture a second chapter. Submitted listings are reviewed by our moderation team to ensure authenticity.
+        </p>
+    </div>
+
+    <div class="card" style="padding: 2.5rem;">
+        <form method="POST" action="{{ url_for('resale.submit') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title" class="form-label">Listing Title *</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Mid-Century Solid Oak Coffee Table" required>
+            </div>
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label for="category" class="form-label">Category *</label>
+                    <select id="category" name="category" class="form-select" required>
+                        <option value="">Select Category...</option>
+                        {% for cat_id, cat_name in categories %}
+                            {% if cat_id != 'all' %}
+                                <option value="{{ cat_id }}">{{ cat_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="condition" class="form-label">Condition *</label>
+                    <select id="condition" name="condition" class="form-select" required>
+                        {% for cond in conditions %}
+                            <option value="{{ cond }}">{{ cond }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Detailed Description *</label>
+                <textarea id="description" name="description" class="form-control" style="min-height: 100px;" placeholder="Describe dimensions, wood species, any minor cosmetic patina, reason for selling..." required></textarea>
+            </div>
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label for="asking_price" class="form-label">Asking Price (₹) *</label>
+                    <input type="number" id="asking_price" name="asking_price" class="form-control" placeholder="e.g. 4500" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location" class="form-label">Location (Neighbourhood & City) *</label>
+                    <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Indiranagar, Bangalore" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="contact_info" class="form-label">Public Contact Details (Phone / Email) *</label>
+                <input type="text" id="contact_info" name="contact_info" class="form-control" placeholder="e.g. seller@example.com | 9876543210" required>
+            </div>
+
+            <!-- Image Options: URL or File Upload -->
+            <div class="form-group">
+                <label for="image_url" class="form-label">Photo Image URL</label>
+                <input type="url" id="image_url" name="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+                <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">
+                    Or provide a direct image link from an image host.
+                </span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="image_file" class="form-label">Or Upload Image File (PNG, JPG, WEBP)</label>
+                <input type="file" id="image_file" name="image_file" class="form-control" accept="image/*">
+            </div>
+
+            <!-- Moderation Notice -->
+            <div style="background-color: var(--bg-muted); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 2rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+                ℹ️ <strong>Curation Policy:</strong> To maintain quality and trust, all new resale listings start in <strong>Pending</strong> review. Once our administration team verifies your photos and details, your piece will appear on the public marketplace.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-listing-btn">
+                Submit Listing for Review &rarr;
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmed | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 680px; padding-top: 3rem; margin-bottom: 4rem;">
+    <div class="card" style="padding: 3rem; text-align: center;">
+        <div style="width: 70px; height: 70px; background-color: #D1FAE5; color: #065F46; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 1.5rem;">
+            ✓
+        </div>
+
+        <span class="badge badge-approved" style="margin-bottom: 0.8rem;">Demo Order Placed Successfully</span>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Thank You For Your Order!</h1>
+        <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">
+            Your order reference is <strong>#{{ order.order_number }}</strong>. Database stock has been securely updated.
+        </p>
+
+        <!-- Order Summary Card -->
+        <div style="background-color: var(--bg-muted); border-radius: var(--radius-md); padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-subtle); font-size: 0.9rem;">
+                <div>
+                    <strong style="color: var(--text-muted); display: block; font-size: 0.8rem;">SHIPPING TO</strong>
+                    <span>{{ order.customer_name }} &bull; {{ order.customer_phone }}</span>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">{{ order.delivery_address }}</div>
+                </div>
+                <div style="text-align: right;">
+                    <strong style="color: var(--text-muted); display: block; font-size: 0.8rem;">STATUS</strong>
+                    <span class="badge badge-pending">{{ order.status }}</span>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div style="margin-bottom: 1rem;">
+                {% for item in order.items %}
+                    <div style="display: flex; justify-content: space-between; font-size: 0.92rem; margin-bottom: 0.5rem;">
+                        <span>{{ item.product_name }} &times; {{ item.quantity }}</span>
+                        <strong>₹{{ "{:,}".format(item.subtotal) }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding-top: 0.8rem; border-top: 2px dashed var(--border-subtle); font-size: 1.15rem; font-weight: 700;">
+                <span>Total Paid (Simulated)</span>
+                <span style="color: var(--accent-olive);">₹{{ "{:,}".format(order.total_amount) }}</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('cart.orders') }}" class="btn btn-primary">
+                View My Orders
+            </a>
+            <a href="{{ url_for('shop.index') }}" class="btn btn-secondary">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

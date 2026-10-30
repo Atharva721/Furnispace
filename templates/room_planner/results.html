@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Curated {{ current_room }} Bundle | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; margin-bottom: 5rem;">
+    <!-- Results Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="badge badge-clay" style="margin-bottom: 0.5rem;">Algorithmic Recommendation</span>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.3rem;">Your {{ current_style }} {{ current_room }} Bundle</h1>
+            <p style="color: var(--text-muted);">
+                A balanced set of essential furniture curated strictly within your ₹{{ "{:,}".format(current_budget) }} budget.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('room_planner.index') }}" class="btn btn-secondary btn-sm">
+                ⚙️ Adjust Room & Budget
+            </a>
+        </div>
+    </div>
+
+    {% if result.success %}
+        <!-- Budget Health Meter -->
+        <div class="card" style="padding: 1.8rem; margin-bottom: 2.5rem; background-color: var(--bg-surface); border: 1px solid var(--border-strong);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span class="product-category">Target Budget</span>
+                    <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main);">
+                        ₹{{ "{:,}".format(current_budget) }}
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <span class="product-category">Current Bundle Total</span>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-olive);" id="bundle-total-display">
+                        ₹{{ "{:,}".format(result.total_price) }}
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <span class="product-category">Remaining Budget</span>
+                    <div style="font-size: 1.6rem; font-weight: 700; color: var(--status-success);" id="bundle-remaining-display">
+                        ₹{{ "{:,}".format(result.remaining_budget) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            {% set pct = (result.total_price / current_budget * 100)|round|int %}
+            <div style="height: 10px; background-color: var(--bg-muted); border-radius: var(--radius-full); overflow: hidden; position: relative;">
+                <div id="budget-progress-bar" style="height: 100%; width: {{ pct }}%; background-color: var(--accent-olive); transition: width 0.3s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-top: 0.4rem;">
+                <span>₹0</span>
+                <span>{{ pct }}% of budget utilized</span>
+                <span>Max: ₹{{ "{:,}".format(current_budget) }}</span>
+            </div>
+        </div>
+
+        <!-- Add Entire Bundle Form -->
+        <form action="{{ url_for('room_planner.add_bundle') }}" method="POST" id="bundle-cart-form">
+            <div class="grid-3" style="gap: 2rem; margin-bottom: 3rem;" id="bundle-items-grid">
+                {% for item in result.items %}
+                    <div class="card product-card bundle-card" data-product-id="{{ item.id }}" data-price="{{ item.price }}" data-category="{{ item.category }}" id="bundle-slot-{{ item.id }}">
+                        <!-- Hidden input to submit with the bundle form -->
+                        <input type="hidden" name="product_ids" value="{{ item.id }}" class="bundle-pid-input">
+
+                        <div class="product-img-wrapper">
+                            <img src="{{ item.image_url }}" alt="{{ item.name }}" class="product-img item-img" loading="lazy">
+                            <div class="product-badges">
+                                <span class="badge badge-olive" style="text-transform: capitalize;">{{ item.category }}</span>
+                                <span class="badge badge-outline" style="background: white;">{{ item.style }}</span>
+                            </div>
+                        </div>
+
+                        <div class="product-card-body">
+                            <h3 class="product-title item-title">{{ item.name }}</h3>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+                                {{ item.material }} &bull; {{ item.dimensions }}
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-subtle);">
+                                <span class="product-price item-price">₹{{ "{:,}".format(item.price) }}</span>
+
+                                <!-- Swap Dropdown if alternatives exist -->
+                                {% set alts = result.alternatives.get(item.id, []) %}
+                                {% if alts %}
+                                    <div style="position: relative;">
+                                        <select class="form-select form-select-sm swap-select" style="font-size: 0.78rem; padding: 0.25rem 0.5rem; width: auto;" title="Swap with alternative product">
+                                            <option value="{{ item.id }}" data-price="{{ item.price }}" data-name="{{ item.name }}" data-img="{{ item.image_url }}" data-material="{{ item.material }}" selected>
+                                                Current Selection
+                                            </option>
+                                            {% for alt in alts %}
+                                                <option value="{{ alt.id }}" data-price="{{ alt.price }}" data-name="{{ alt.name }}" data-img="{{ alt.image_url }}" data-material="{{ alt.material }}">
+                                                    Swap: {{ alt.name }} (₹{{ "{:,}".format(alt.price) }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Bottom Sticky Action Bar -->
+            <div class="card" style="padding: 2rem; background: var(--bg-surface); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; border-top: 3px solid var(--accent-clay);">
+                <div>
+                    <h3 style="font-size: 1.4rem; margin-bottom: 0.2rem;">Ready to furnish your {{ current_room }}?</h3>
+                    <p style="color: var(--text-muted); font-size: 0.92rem;">
+                        Add all <span id="bundle-count-display">{{ result.items|length }}</span> curated items to your cart with one click.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="text-align: right; margin-right: 1rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Bundle Price</span>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-olive);" id="action-bar-total">
+                            ₹{{ "{:,}".format(result.total_price) }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-clay btn-lg" id="add-bundle-to-cart-btn" style="font-size: 1.1rem; padding: 0.85rem 2.2rem;">
+                        🛒 Add Entire Bundle to Cart &rarr;
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    {% else %}
+        <!-- Out of Budget / Insufficient items state -->
+        <div class="card" style="padding: 4rem; text-align: center; margin-bottom: 4rem;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏷️</div>
+            <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">Budget Adjustment Needed</h2>
+            <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 580px; margin: 0 auto 2rem; line-height: 1.6;">
+                {{ result.message }}
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ url_for('room_planner.index') }}" class="btn btn-primary btn-lg">
+                    Adjust Budget in Room Planner
+                </a>
+                <a href="{{ url_for('resale.index') }}" class="btn btn-secondary btn-lg">
+                    Explore Affordable Resale Marketplace
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const targetBudget = {{ current_budget }};
+        const totalDisplay = document.getElementById('bundle-total-display');
+        const remainingDisplay = document.getElementById('bundle-remaining-display');
+        const progressBar = document.getElementById('budget-progress-bar');
+        const actionBarTotal = document.getElementById('action-bar-total');
+
+        function recalculate() {
+            let currentTotal = 0;
+            document.querySelectorAll('.bundle-card').forEach(card => {
+                const price = parseInt(card.dataset.price) || 0;
+                currentTotal += price;
+            });
+
+            const remaining = targetBudget - currentTotal;
+            if (totalDisplay) totalDisplay.textContent = '₹' + currentTotal.toLocaleString('en-IN');
+            if (actionBarTotal) actionBarTotal.textContent = '₹' + currentTotal.toLocaleString('en-IN');
+            if (remainingDisplay) {
+                remainingDisplay.textContent = '₹' + remaining.toLocaleString('en-IN');
+                remainingDisplay.style.color = remaining >= 0 ? 'var(--status-success)' : 'var(--status-danger)';
+            }
+
+            if (progressBar) {
+                const pct = Math.min(100, Math.round((currentTotal / targetBudget) * 100));
+                progressBar.style.width = pct + '%';
+                progressBar.style.backgroundColor = currentTotal > targetBudget ? 'var(--status-danger)' : 'var(--accent-olive)';
+            }
+        }
+
+        // Swap select change handlers
+        document.querySelectorAll('.swap-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const card = this.closest('.bundle-card');
+                const newId = this.value;
+                const newPrice = parseInt(selectedOption.dataset.price);
+                const newName = selectedOption.dataset.name;
+                const newImg = selectedOption.dataset.img;
+                const newMaterial = selectedOption.dataset.material;
+
+                // Update card visual details
+                card.dataset.productId = newId;
+                card.dataset.price = newPrice;
+                card.querySelector('.bundle-pid-input').value = newId;
+                card.querySelector('.item-title').textContent = newName;
+                card.querySelector('.item-price').textContent = '₹' + newPrice.toLocaleString('en-IN');
+                if (newImg) card.querySelector('.item-img').src = newImg;
+
+                recalculate();
+            });
+        });
+    });
+</script>
+{% endblock %}

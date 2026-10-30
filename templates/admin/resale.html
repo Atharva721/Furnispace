@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Resale Moderation Queue | FurniSpace Admin{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; margin-bottom: 5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="product-category" style="color: var(--accent-clay);">Community Curation</span>
+            <h1 style="font-size: 2.4rem;">Resale Moderation Queue</h1>
+            <p style="color: var(--text-muted);">
+                Review user-submitted pre-loved furniture to prevent spam and maintain quality before public marketplace display.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                &larr; Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+        <a href="{{ url_for('admin.resale', status='Pending') }}" class="btn btn-sm {% if current_status == 'Pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Pending Review
+            {% if pending_count > 0 %}
+                <span class="badge badge-pending" style="margin-left: 0.3rem;">{{ pending_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin.resale', status='Approved') }}" class="btn btn-sm {% if current_status == 'Approved' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Approved & Live
+        </a>
+        <a href="{{ url_for('admin.resale', status='Rejected') }}" class="btn btn-sm {% if current_status == 'Rejected' %}btn-primary{% else %}btn-secondary{% endif %}">
+            Rejected
+        </a>
+        <a href="{{ url_for('admin.resale', status='all') }}" class="btn btn-sm {% if current_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+            All Listings
+        </a>
+    </div>
+
+    <!-- Listings Review Cards -->
+    {% if listings %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for item in listings %}
+                <div class="card" style="padding: 2rem; display: grid; grid-template-columns: 200px 1.5fr 1.2fr; gap: 2rem; align-items: start;">
+                    <!-- Image -->
+                    <div style="aspect-ratio: 4/3; border-radius: var(--radius-sm); overflow: hidden; background-color: var(--bg-muted);">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <!-- Details -->
+                    <div>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="badge badge-olive">{{ item.condition }}</span>
+                            <span class="badge badge-outline" style="text-transform: capitalize;">{{ item.category }}</span>
+                            {% if item.status == 'Pending' %}
+                                <span class="badge badge-pending">Pending Review</span>
+                            {% elif item.status == 'Approved' %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% else %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% endif %}
+                        </div>
+
+                        <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">{{ item.title }}</h3>
+                        <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                            {{ item.description }}
+                        </p>
+
+                        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                            <div><strong>Seller:</strong> {{ item.seller.username }} ({{ item.seller.email }})</div>
+                            <div><strong>Contact:</strong> {{ item.contact_info }}</div>
+                            <div><strong>Location:</strong> 📍 {{ item.location }}</div>
+                            <div><strong>Submitted:</strong> {{ item.created_at.strftime('%d %b %Y at %I:%M %p') }}</div>
+                        </div>
+
+                        {% if item.admin_notes %}
+                            <div style="margin-top: 0.8rem; padding: 0.6rem 0.8rem; background: var(--bg-muted); border-radius: var(--radius-sm); font-size: 0.82rem;">
+                                <strong>Admin Note on Record:</strong> {{ item.admin_notes }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Moderation Decision Form -->
+                    <div style="background-color: var(--bg-muted); padding: 1.5rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-olive); margin-bottom: 1rem;">
+                            ₹{{ "{:,}".format(item.asking_price) }}
+                        </div>
+
+                        <form action="{{ url_for('admin.resale_moderate', listing_id=item.id) }}" method="POST">
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="notes-{{ item.id }}" class="form-label" style="font-size: 0.8rem;">Moderator Note</label>
+                                <input type="text" id="notes-{{ item.id }}" name="admin_notes" class="form-control" style="font-size: 0.85rem;" placeholder="e.g. Verified imagery / Poor condition" value="{{ item.admin_notes or '' }}">
+                            </div>
+
+                            <div style="display: flex; gap: 0.6rem;">
+                                <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm" style="flex: 1;" {% if item.status == 'Approved' %}disabled style="opacity: 0.6;"{% endif %}>
+                                    ✓ Approve & Publish
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm" style="flex: 1;" {% if item.status == 'Rejected' %}disabled style="opacity: 0.6;"{% endif %}>
+                                    ✕ Reject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+            <h3>No listings awaiting moderation in this view</h3>
+            <p style="color: var(--text-muted);">
+                All community resale submissions have been reviewed.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

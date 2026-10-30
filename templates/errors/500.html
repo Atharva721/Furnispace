@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}System Error (500) | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; padding-top: 4rem; text-align: center; margin-bottom: 5rem;">
+    <div class="card" style="padding: 3rem;">
+        <div style="font-size: 3.5rem; margin-bottom: 1rem;">⚙️</div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.8rem;">500 - Server Encountered an Issue</h1>
+        <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.6;">
+            We encountered a temporary server error while processing your request. Please try again in a few moments.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{{ url_for('shop.home') }}" class="btn btn-primary">Return Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

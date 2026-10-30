@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <div style="margin-bottom: 2rem;">
+        <span class="product-category">Order Preparation</span>
+        <h1 style="font-size: 2.4rem;">Your Shopping Cart</h1>
+    </div>
+
+    {% if cart_items %}
+        <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 2.5rem; align-items: start; margin-bottom: 4rem;">
+            <!-- Cart Items List -->
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Unit Price</th>
+                            <th style="width: 140px; text-align: center;">Quantity</th>
+                            <th style="text-align: right;">Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; gap: 1rem; align-items: center;">
+                                        <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" style="width: 70px; height: 55px; object-fit: cover; border-radius: var(--radius-sm);">
+                                        <div>
+                                            <a href="{{ url_for('shop.product_detail', product_id=item.product.id) }}" style="font-weight: 600; color: var(--text-main);">
+                                                {{ item.product.name }}
+                                            </a>
+                                            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                                {{ item.product.material }} &bull; {{ item.product.dimensions }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>₹{{ "{:,}".format(item.product.price) }}</td>
+                                <td style="text-align: center;">
+                                    <form action="{{ url_for('cart.update', item_id=item.id) }}" method="POST" style="display: flex; gap: 0.3rem; align-items: center; justify-content: center;">
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="form-control form-control-sm" style="width: 60px; text-align: center; padding: 0.3rem;" onchange="this.form.submit()">
+                                        <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem;" title="Update quantity">
+                                            ↻
+                                        </button>
+                                    </form>
+                                    {% if item.quantity >= item.product.stock %}
+                                        <span style="font-size: 0.72rem; color: var(--status-warning); display: block; margin-top: 0.2rem;">Max stock</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right; font-weight: 600; color: var(--accent-olive);">
+                                    ₹{{ "{:,}".format(item.subtotal) }}
+                                </td>
+                                <td style="text-align: center;">
+                                    <a href="{{ url_for('cart.remove', item_id=item.id) }}" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" title="Remove from cart">
+                                        🗑️
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Order Summary Card -->
+            <div class="card" style="padding: 2rem; background: var(--bg-surface);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-subtle);">
+                    Order Summary
+                </h3>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">Subtotal</span>
+                    <span>₹{{ "{:,}".format(total) }}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">Standard Delivery</span>
+                    <span style="color: var(--status-success); font-weight: 600;">Complimentary</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; padding-top: 1rem; border-top: 2px dashed var(--border-subtle); font-size: 1.25rem; font-weight: 700;">
+                    <span>Total Amount</span>
+                    <span style="color: var(--accent-olive);">₹{{ "{:,}".format(total) }}</span>
+                </div>
+
+                <a href="{{ url_for('cart.checkout') }}" class="btn btn-primary btn-block btn-lg" id="proceed-to-checkout-btn">
+                    Proceed to Checkout &rarr;
+                </a>
+
+                <div style="margin-top: 1.2rem; text-align: center;">
+                    <a href="{{ url_for('cart.clear') }}" class="btn btn-secondary btn-sm" onclick="return confirm('Clear your entire cart?');">
+                        Clear Cart
+                    </a>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+                    🔒 <strong>Demo Checkout Guarantee:</strong> All orders are simulated safely without real payment processing. Stock will be automatically reserved and updated.
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center; margin-bottom: 4rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+            <h2>Your cart is currently empty</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto;">
+                Explore our sustainable collections or try our algorithmic room bundle planner to fill your sanctuary.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ url_for('shop.index') }}" class="btn btn-primary btn-lg">
+                    Shop New Furniture
+                </a>
+                <a href="{{ url_for('room_planner.index') }}" class="btn btn-clay btn-lg">
+                    Complete My Room
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

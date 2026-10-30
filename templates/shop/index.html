@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Furniture Catalogue | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <!-- Catalog Header -->
+    <div style="margin-bottom: 2rem;">
+        <span class="product-category">Sustainable Furniture</span>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Furniture Collection</h1>
+        <p style="color: var(--text-muted); max-width: 650px;">
+            Handcrafted with kiln-dried sustainable wood, premium fabrics, and non-toxic matte lacquers.
+        </p>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card" style="padding: 1.5rem; margin-bottom: 2.5rem; background-color: var(--bg-surface);">
+        <form method="GET" action="{{ url_for('shop.index') }}" id="shop-filter-form">
+            <div style="display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+                <!-- Search input -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="q" class="form-label">Search Products</label>
+                    <input type="text" id="q" name="q" class="form-control" placeholder="Search by name, wood, linen..." value="{{ search_query }}">
+                </div>
+
+                <!-- Category -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="category" class="form-label">Category</label>
+                    <select id="category" name="category" class="form-select">
+                        {% for cat_key, cat_label in categories %}
+                            <option value="{{ cat_key }}" {% if current_category == cat_key %}selected{% endif %}>
+                                {{ cat_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Style -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="style" class="form-label">Aesthetic Style</label>
+                    <select id="style" name="style" class="form-select">
+                        <option value="All" {% if not current_style or current_style == 'All' %}selected{% endif %}>All Styles</option>
+                        {% for st in styles %}
+                            <option value="{{ st }}" {% if current_style == st %}selected{% endif %}>{{ st }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="sort" class="form-label">Sort By</label>
+                    <select id="sort" name="sort" class="form-select">
+                        <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Featured</option>
+                        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest Additions</option>
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">
+                        Filter
+                    </button>
+                    {% if current_category != 'all' or search_query or current_style != 'All' or min_price or max_price %}
+                        <a href="{{ url_for('shop.index') }}" class="btn btn-secondary" style="height: 42px; margin-left: 0.3rem;" title="Reset filters">
+                            ✕
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badges -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <span style="font-size: 0.95rem; font-weight: 600; color: var(--text-muted);">
+            Showing {{ products|length }} active products
+        </span>
+        {% if compare_ids %}
+            <a href="{{ url_for('shop.compare') }}" class="btn btn-secondary btn-sm">
+                ⚖️ View Comparison ({{ compare_ids|length }}/3)
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+        <div class="grid-3" style="gap: 2rem;">
+            {% for product in products %}
+                <div class="card product-card" id="product-card-{{ product.id }}">
+                    <div class="product-img-wrapper">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img" loading="lazy">
+                        <div class="product-badges">
+                            <span class="badge badge-olive">{{ product.style }}</span>
+                            {% if product.stock <= 0 %}
+                                <span class="badge badge-rejected">Out of Stock</span>
+                            {% elif product.stock <= 3 %}
+                                <span class="badge badge-pending">Only {{ product.stock }} left!</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-category">{{ product.category }} &bull; {{ product.material }}</span>
+                        <a href="{{ url_for('shop.product_detail', product_id=product.id) }}">
+                            <h3 class="product-title">{{ product.name }}</h3>
+                        </a>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.5;">
+                            {{ product.description[:110] }}...
+                        </p>
+                        <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 1rem;">
+                            📏 {{ product.dimensions }}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-subtle);">
+                            <span class="product-price">₹{{ "{:,}".format(product.price) }}</span>
+                            <div style="display: flex; gap: 0.4rem;">
+                                {% if product.id in compare_ids %}
+                                    <a href="{{ url_for('shop.compare_remove', product_id=product.id) }}" class="btn btn-sm" style="background-color: var(--accent-clay-subtle); color: var(--accent-clay); border: 1px solid var(--accent-clay);" title="Remove from Compare">
+                                        ⚖️ Selected
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('shop.compare_add', product_id=product.id) }}" class="btn btn-secondary btn-sm" title="Add to Compare (max 3)">
+                                        ⚖️ Compare
+                                    </a>
+                                {% endif %}
+
+                                {% if product.stock > 0 %}
+                                    <form action="{{ url_for('cart.add', product_id=product.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            + Cart
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.5;">
+                                        Sold Out
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3>No furniture pieces matched your criteria</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                Try adjusting your search keywords, clearing your filters, or browsing other categories.
+            </p>
+            <a href="{{ url_for('shop.index') }}" class="btn btn-primary">
+                Reset All Filters
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

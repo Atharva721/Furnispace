@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}FurniSpace | Modern Sustainable Furniture & Intelligent Room Styling{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container hero-grid">
+        <div>
+            <span class="badge badge-olive" style="margin-bottom: 1rem; font-size: 0.82rem; padding: 0.35rem 0.85rem;">
+                Sustainable Design & Circular Living
+            </span>
+            <h1 class="hero-title">
+                Furnish Your Sanctuary With Intention.
+            </h1>
+            <p class="hero-subtitle">
+                Explore handcrafted sustainable furniture, discover verified pre-loved gems in our circular resale marketplace, or let our intelligent algorithm design your entire room strictly within your budget.
+            </p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('shop.index') }}" class="btn btn-primary btn-lg" id="hero-shop-btn">
+                    Explore Catalogue
+                </a>
+                <a href="{{ url_for('room_planner.index') }}" class="btn btn-clay btn-lg" id="hero-planner-btn">
+                    ✨ Complete My Room
+                </a>
+                <a href="{{ url_for('resale.index') }}" class="btn btn-secondary btn-lg" id="hero-resale-btn">
+                    🔄 Resale Market
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-image-box">
+            <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80" 
+                 alt="Minimalist architectural living space with oak table and linen lounge" 
+                 class="hero-img">
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Value Pillars -->
+    <section style="margin-bottom: 4.5rem;">
+        <div class="grid-3" style="gap: 2rem;">
+            <div class="card" style="padding: 2rem; border-left: 4px solid var(--accent-olive);">
+                <div style="font-size: 2rem; margin-bottom: 0.75rem;">🪵</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Heirloom Craftsmanship</h3>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">
+                    Constructed from certified sustainable hardwoods, organic linens, and recyclable metals built to endure across generations.
+                </p>
+            </div>
+
+            <div class="card" style="padding: 2rem; border-left: 4px solid var(--accent-clay);">
+                <div style="font-size: 2rem; margin-bottom: 0.75rem;">🎯</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Guaranteed Budget Bundles</h3>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">
+                    Our deterministic "Complete My Room" engine mathematically curates your ideal furniture combination without ever exceeding your price limit.
+                </p>
+            </div>
+
+            <div class="card" style="padding: 2rem; border-left: 4px solid var(--status-info);">
+                <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔄</div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Circular Pre-Loved Market</h3>
+                <p style="color: var(--text-muted); font-size: 0.92rem;">
+                    Pass forward high-grade furniture to new homes. Submit your pre-loved pieces for verified peer-to-peer resale with administrative curation.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section style="margin-bottom: 5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <span class="product-category">Explore Collections</span>
+                <h2>Browse by Category</h2>
+            </div>
+            <a href="{{ url_for('shop.index') }}" class="btn btn-secondary btn-sm">
+                View All Categories &rarr;
+            </a>
+        </div>
+
+        <div class="grid-4" style="gap: 1.5rem;">
+            {% for cat_id, cat_name in categories %}
+                <a href="{{ url_for('shop.index', category=cat_id) }}" class="card" style="text-align: center; padding: 2rem 1rem; text-decoration: none;">
+                    <div style="font-size: 2.2rem; margin-bottom: 0.8rem;">
+                        {% if cat_id == 'sofas' %}🛋️
+                        {% elif cat_id == 'beds' %}🛏️
+                        {% elif cat_id == 'tables' %}🪑
+                        {% elif cat_id == 'chairs' %}🪑
+                        {% elif cat_id == 'wardrobes' %}🚪
+                        {% elif cat_id == 'storage' %}🗄️
+                        {% elif cat_id == 'lighting' %}💡
+                        {% else %}🏺{% endif %}
+                    </div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">{{ cat_name }}</h3>
+                    <span style="font-size: 0.82rem; color: var(--text-muted);">Explore designs</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Featured Products Showcase -->
+    <section style="margin-bottom: 5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+            <div>
+                <span class="product-category">Curated Selection</span>
+                <h2>Featured New Arrivals</h2>
+            </div>
+            <a href="{{ url_for('shop.index') }}" class="btn btn-secondary btn-sm">
+                Shop Full Collection &rarr;
+            </a>
+        </div>
+
+        <div class="grid-3" style="gap: 2rem;">
+            {% for product in featured_products %}
+                <div class="card product-card">
+                    <div class="product-img-wrapper">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img" loading="lazy">
+                        <div class="product-badges">
+                            <span class="badge badge-olive">{{ product.style }}</span>
+                            {% if product.stock <= 0 %}
+                                <span class="badge badge-rejected">Out of Stock</span>
+                            {% elif product.stock <= 4 %}
+                                <span class="badge badge-pending">Low Stock ({{ product.stock }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-category">{{ product.category }}</span>
+                        <a href="{{ url_for('shop.product_detail', product_id=product.id) }}">
+                            <h3 class="product-title">{{ product.name }}</h3>
+                        </a>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                            {{ product.description[:110] }}...
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-subtle);">
+                            <span class="product-price">₹{{ "{:,}".format(product.price) }}</span>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <a href="{{ url_for('shop.compare_add', product_id=product.id) }}" class="btn btn-secondary btn-sm" title="Add to Compare">
+                                    ⚖️
+                                </a>
+                                {% if product.stock > 0 %}
+                                    <form action="{{ url_for('cart.add', product_id=product.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.6;">
+                                        Unavailable
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Complete My Room Interactive Callout -->
+    <section class="card" style="padding: 3.5rem; background: linear-gradient(135deg, #46594A 0%, #364639 100%); color: white; margin-bottom: 5rem; border: none; border-radius: var(--radius-lg);">
+        <div style="max-width: 680px;">
+            <span class="badge badge-clay" style="margin-bottom: 1rem;">Algorithmic Room Styling</span>
+            <h2 style="color: white; font-size: 2.4rem; line-height: 1.2; margin-bottom: 1.2rem;">
+                Have a room and a fixed budget?<br>Let us build the perfect bundle.
+            </h2>
+            <p style="font-size: 1.05rem; line-height: 1.6; opacity: 0.9; margin-bottom: 2rem;">
+                Select your room type (Living Room, Bedroom, Dining, Study), choose your aesthetic, and enter your budget. Our rule-based algorithm mathematically constructs an essential furniture bundle guaranteed never to exceed your limit.
+            </p>
+            <a href="{{ url_for('room_planner.index') }}" class="btn btn-clay btn-lg" style="font-size: 1.1rem; padding: 0.85rem 2rem;">
+                Try Complete My Room &rarr;
+            </a>
+        </div>
+    </section>
+
+    <!-- Pre-Loved Resale Banner -->
+    <section class="card" style="padding: 3rem; background: var(--bg-muted); margin-bottom: 4rem;">
+        <div class="grid-2" style="align-items: center; gap: 2.5rem;">
+            <div>
+                <span class="badge badge-outline" style="margin-bottom: 0.8rem; background: white;">Sustainable Marketplace</span>
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Give Pre-Loved Furniture a Second Home</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    FurniSpace champions sustainable design. If you have gently used furniture to sell, list it on our community marketplace. Every listing is reviewed by our curators to protect our community.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="{{ url_for('resale.submit') }}" class="btn btn-primary">
+                        Sell Used Furniture
+                    </a>
+                    <a href="{{ url_for('resale.index') }}" class="btn btn-secondary">
+                        Browse Pre-Loved
+                    </a>
+                </div>
+            </div>
+            <div>
+                <img src="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=800&q=80" 
+                     alt="Pre-loved mid-century table" 
+                     style="border-radius: var(--radius-md); box-shadow: var(--shadow-md);">
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

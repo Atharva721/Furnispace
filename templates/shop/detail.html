@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} | FurniSpace{% endblock %}
+{% block meta_description %}{{ product.description[:150] }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <!-- Breadcrumbs -->
+    <nav style="margin-bottom: 2rem; font-size: 0.88rem; color: var(--text-muted);">
+        <a href="{{ url_for('shop.home') }}">Home</a> &nbsp;/&nbsp; 
+        <a href="{{ url_for('shop.index') }}">Shop</a> &nbsp;/&nbsp; 
+        <a href="{{ url_for('shop.index', category=product.category) }}" style="text-transform: capitalize;">{{ product.category }}</a> &nbsp;/&nbsp; 
+        <span style="color: var(--text-main); font-weight: 600;">{{ product.name }}</span>
+    </nav>
+
+    <!-- Product Hero Grid -->
+    <div class="grid-2" style="gap: 3.5rem; align-items: start; margin-bottom: 5rem;">
+        <!-- Left: Image Box -->
+        <div class="card" style="overflow: hidden; border-radius: var(--radius-lg); background-color: var(--bg-muted);">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width: 100%; height: auto; max-height: 540px; object-fit: cover;">
+        </div>
+
+        <!-- Right: Information & Purchasing -->
+        <div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <span class="badge badge-olive">{{ product.style }}</span>
+                <span class="badge badge-outline" style="text-transform: capitalize;">{{ product.category }}</span>
+                {% if product.stock > 0 %}
+                    <span class="badge badge-approved">In Stock ({{ product.stock }} units)</span>
+                {% else %}
+                    <span class="badge badge-rejected">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <h1 style="font-size: 2.4rem; margin-bottom: 0.8rem; line-height: 1.2;">
+                {{ product.name }}
+            </h1>
+
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent-olive); margin-bottom: 1.5rem;">
+                ₹{{ "{:,}".format(product.price) }}
+            </div>
+
+            <p style="font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); margin-bottom: 2rem;">
+                {{ product.description }}
+            </p>
+
+            <!-- Specifications Table -->
+            <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: var(--bg-muted); border: none;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Specifications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                    <div>
+                        <strong style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Material</strong>
+                        <span>{{ product.material }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Colour / Finish</strong>
+                        <span>{{ product.colour }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Dimensions</strong>
+                        <span>{{ product.dimensions }}</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-muted); display: block; font-size: 0.8rem; text-transform: uppercase;">Room Suitability</strong>
+                        <span>{{ product.room_types }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchasing Controls -->
+            {% if product.stock > 0 %}
+                <form action="{{ url_for('cart.add', product_id=product.id) }}" method="POST" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center; max-width: 400px;">
+                        <div style="width: 100px;">
+                            <label for="quantity" class="form-label" style="font-size: 0.8rem;">Quantity</label>
+                            <input type="number" id="quantity" name="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}" style="text-align: center; font-weight: 600;">
+                        </div>
+                        <div style="flex: 1; padding-top: 1.6rem;">
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="add-to-cart-btn">
+                                Add to Cart &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div style="padding: 1.25rem; background-color: #FEE2E2; border-radius: var(--radius-sm); color: #991B1B; margin-bottom: 1.5rem; font-weight: 500;">
+                    ⚠️ This item is temporarily out of stock. We are restocking soon!
+                </div>
+            {% endif %}
+
+            <!-- Compare Action Button -->
+            <div style="display: flex; gap: 1rem;">
+                {% if is_in_compare %}
+                    <a href="{{ url_for('shop.compare_remove', product_id=product.id) }}" class="btn btn-secondary btn-sm" style="color: var(--accent-clay); border-color: var(--accent-clay);">
+                        ⚖️ In Comparison List (Remove)
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('shop.compare_add', product_id=product.id) }}" class="btn btn-secondary btn-sm">
+                        ⚖️ Add to Product Comparison
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('shop.compare') }}" class="btn btn-outline btn-sm" style="color: var(--text-muted);">
+                    View Compare Table
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+        <section style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border-subtle);">
+            <h2 style="font-size: 1.8rem; margin-bottom: 2rem;">Complementary Pieces</h2>
+            <div class="grid-3" style="gap: 2rem;">
+                {% for related in related_products %}
+                    <div class="card product-card">
+                        <div class="product-img-wrapper">
+                            <img src="{{ related.image_url }}" alt="{{ related.name }}" class="product-img">
+                        </div>
+                        <div class="product-card-body">
+                            <span class="product-category">{{ related.category }}</span>
+                            <a href="{{ url_for('shop.product_detail', product_id=related.id) }}">
+                                <h3 class="product-title">{{ related.name }}</h3>
+                            </a>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.8rem;">
+                                <span class="product-price">₹{{ "{:,}".format(related.price) }}</span>
+                                <a href="{{ url_for('shop.product_detail', product_id=related.id) }}" class="btn btn-secondary btn-sm">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

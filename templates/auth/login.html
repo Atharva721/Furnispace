@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 480px; margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="card" style="padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🛋️</div>
+            <h2>Welcome Back</h2>
+            <p style="color: var(--text-muted); font-size: 0.92rem;">
+                Sign in to manage your orders, saved listings, and cart.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div class="form-group">
+                <label for="identifier" class="form-label">Username or Email</label>
+                <input type="text" id="identifier" name="identifier" class="form-control" placeholder="admin or customer@example.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;" id="login-submit-btn">
+                Sign In &rarr;
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.9rem;">
+            <span style="color: var(--text-muted);">Don't have an account yet?</span>
+            <a href="{{ url_for('auth.register') }}" style="color: var(--accent-olive); font-weight: 600; margin-left: 0.3rem;">
+                Create an account
+            </a>
+        </div>
+
+        <!-- Demo Accounts Quick Reference -->
+        <div style="margin-top: 1.5rem; background-color: var(--bg-muted); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.82rem;">
+            <strong style="display: block; margin-bottom: 0.3rem; color: var(--text-main);">🔑 Demo Accounts:</strong>
+            <div style="margin-bottom: 0.4rem;">
+                <strong>Admin:</strong> <code>admin</code> / <code>AdminPassword123!</code>
+            </div>
+            <div>
+                <strong>Customer:</strong> <code>john_doe</code> / <code>CustomerPass123!</code>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

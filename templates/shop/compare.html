@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Product Comparison | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <span class="product-category">Specifications Comparison</span>
+            <h1 style="font-size: 2.4rem;">Compare Products ({{ products|length }}/3)</h1>
+            <p style="color: var(--text-muted);">
+                Evaluate dimensions, materials, finishes and pricing side-by-side.
+            </p>
+        </div>
+        {% if products %}
+            <div>
+                <a href="{{ url_for('shop.compare_clear') }}" class="btn btn-secondary btn-sm" onclick="return confirm('Clear all compared products?');">
+                    🗑️ Clear All
+                </a>
+                <a href="{{ url_for('shop.index') }}" class="btn btn-primary btn-sm" style="margin-left: 0.5rem;">
+                    + Add More
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if products %}
+        <div class="table-responsive" style="margin-bottom: 4rem;">
+            <table class="table" style="min-width: 750px;">
+                <thead>
+                    <tr>
+                        <th style="width: 220px;">Feature</th>
+                        {% for product in products %}
+                            <th style="text-align: center; vertical-align: top; width: calc((100% - 220px) / {{ products|length }});">
+                                <div style="aspect-ratio: 4/3; max-width: 200px; margin: 0 auto 0.8rem; overflow: hidden; border-radius: var(--radius-sm);">
+                                    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="font-size: 1.05rem; font-family: var(--font-sans); text-transform: none; font-weight: 600; color: var(--text-main); margin-bottom: 0.3rem;">
+                                    {{ product.name }}
+                                </div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: var(--accent-olive); margin-bottom: 0.6rem;">
+                                    ₹{{ "{:,}".format(product.price) }}
+                                </div>
+                                <a href="{{ url_for('shop.compare_remove', product_id=product.id) }}" class="btn btn-danger btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                                    ✕ Remove
+                                </a>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Category</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center; text-transform: capitalize;">{{ product.category }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Aesthetic Style</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;"><span class="badge badge-olive">{{ product.style }}</span></td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Material & Construction</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;">{{ product.material }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Colour & Finish</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;">{{ product.colour }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Dimensions</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center; font-weight: 500;">{{ product.dimensions }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Room Suitability</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;">{{ product.room_types }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Availability</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;">
+                                {% if product.stock > 0 %}
+                                    <span class="badge badge-approved">In Stock ({{ product.stock }})</span>
+                                {% else %}
+                                    <span class="badge badge-rejected">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td><strong>Actions</strong></td>
+                        {% for product in products %}
+                            <td style="text-align: center;">
+                                {% if product.stock > 0 %}
+                                    <form action="{{ url_for('cart.add', product_id=product.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.5;">
+                                        Unavailable
+                                    </button>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center; margin-bottom: 4rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚖️</div>
+            <h3>Your comparison list is empty</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto;">
+                You can select up to 3 furniture pieces from our catalogue to compare specifications, dimensions, materials, and pricing side-by-side.
+            </p>
+            <a href="{{ url_for('shop.index') }}" class="btn btn-primary btn-lg">
+                Browse Furniture &rarr;
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

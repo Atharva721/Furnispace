@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FurniSpace | Modern Sustainable Living{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}FurniSpace provides premium new furniture, a community resale marketplace, and smart budget-based room planning.{% endblock %}">
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="{{ url_for('shop.home') }}" class="brand-logo" id="brand-logo-link">
+                <span class="brand-icon">🛋️</span>
+                <span>FurniSpace</span>
+            </a>
+
+            <button class="mobile-toggle" aria-label="Toggle navigation menu">☰</button>
+
+            <nav>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{{ url_for('shop.home') }}" class="nav-link {% if request.endpoint == 'shop.home' %}active{% endif %}">Home</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('shop.index') }}" class="nav-link {% if request.endpoint in ['shop.index', 'shop.product_detail'] %}active{% endif %}">Shop Furniture</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('room_planner.index') }}" class="nav-link {% if 'room_planner' in (request.endpoint or '') %}active{% endif %}">
+                            Complete My Room
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('resale.index') }}" class="nav-link {% if request.endpoint in ['resale.index', 'resale.submit'] %}active{% endif %}">
+                            Resale Market
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('shop.compare') }}" class="nav-link {% if request.endpoint == 'shop.compare' %}active{% endif %}">
+                            Compare 
+                            {% if compare_count > 0 %}
+                                <span class="badge badge-clay" id="nav-compare-count">{{ compare_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% if current_user and current_user.is_admin() %}
+                        <li>
+                            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if 'admin' in (request.endpoint or '') %}active{% endif %}" style="color: var(--status-warning); font-weight: 700;">
+                                ⚙️ Admin Portal
+                                {% if pending_resale_count > 0 %}
+                                    <span class="badge badge-pending">{{ pending_resale_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div class="nav-actions">
+                <!-- Cart Link -->
+                <a href="{{ url_for('cart.index') }}" class="btn btn-secondary btn-sm" id="nav-cart-btn">
+                    <span>🛒 Cart</span>
+                    {% if cart_count > 0 %}
+                        <span class="badge badge-olive" id="nav-cart-count">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+
+                <!-- User Account Actions -->
+                {% if current_user %}
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <a href="{{ url_for('cart.orders') }}" class="btn btn-secondary btn-sm" title="My Orders">
+                            📦 Orders
+                        </a>
+                        <a href="{{ url_for('resale.my_listings') }}" class="btn btn-secondary btn-sm" title="My Resale Listings">
+                            🏷️ Listings
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline" style="border: 1px solid var(--border-strong); color: var(--text-muted);">
+                            Sign Out
+                        </a>
+                    </div>
+                {% else %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm" id="nav-login-btn">
+                            Sign In
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm" id="nav-register-btn">
+                            Join
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Flash Alerts -->
+    <div class="container flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}" role="alert">
+                        <span>{{ message }}</span>
+                        <button class="flash-close" aria-label="Dismiss alert">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Brand Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="grid-4" style="gap: 2.5rem; margin-bottom: 2rem;">
+                <div>
+                    <div class="brand-logo" style="color: white; margin-bottom: 1rem;">
+                        <span class="brand-icon">🛋️</span>
+                        <span>FurniSpace</span>
+                    </div>
+                    <p style="font-size: 0.88rem; line-height: 1.6; color: #9C9488;">
+                        Crafting serene, sustainable living spaces. From thoughtfully built solid-wood pieces to circular pre-loved furniture and algorithmic budget planning.
+                    </p>
+                </div>
+
+                <div>
+                    <h4>Shopping</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('shop.index') }}">All Furniture</a></li>
+                        <li><a href="{{ url_for('shop.index', category='sofas') }}">Sofas & Couches</a></li>
+                        <li><a href="{{ url_for('shop.index', category='beds') }}">Beds & Mattresses</a></li>
+                        <li><a href="{{ url_for('shop.index', category='tables') }}">Tables & Desks</a></li>
+                        <li><a href="{{ url_for('shop.index', category='chairs') }}">Chairs & Seating</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>Special Features</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('room_planner.index') }}">Complete My Room Planner</a></li>
+                        <li><a href="{{ url_for('resale.index') }}">Resale Marketplace</a></li>
+                        <li><a href="{{ url_for('resale.submit') }}">Sell Used Furniture</a></li>
+                        <li><a href="{{ url_for('shop.compare') }}">Product Comparison</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4>Demo & Academic</h4>
+                    <p style="font-size: 0.85rem; color: #9C9488; margin-bottom: 0.8rem;">
+                        This platform operates in demo mode. All checkout and payment processes are simulated.
+                    </p>
+                    <div style="font-size: 0.82rem; background: rgba(255,255,255,0.06); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1);">
+                        <strong>Admin Credentials:</strong><br>
+                        Username: <code>admin</code><br>
+                        Password: <code>AdminPassword123!</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 FurniSpace Inc. All rights reserved. Built for academic demonstration.</p>
+                <div style="display: flex; gap: 1.5rem;">
+                    <span>🌱 Sustainable Forestry Certified</span>
+                    <span>🔄 Circular Furniture Economy</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Frontend Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Inventory | FurniSpace Admin{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; margin-bottom: 5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="product-category" style="color: var(--accent-clay);">Inventory Management</span>
+            <h1 style="font-size: 2.4rem;">Product Catalogue</h1>
+            <p style="color: var(--text-muted);">
+                Add new products, adjust inventory stock levels, or toggle visibility.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.8rem;">
+            <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary" id="admin-add-product-btn">
+                + Add New Furniture Piece
+            </a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                &larr; Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem;">
+        <a href="{{ url_for('admin.products', category='all') }}" class="btn btn-sm {% if current_category == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+            All ({{ products|length }})
+        </a>
+        {% for cat in categories %}
+            <a href="{{ url_for('admin.products', category=cat) }}" class="btn btn-sm {% if current_category == cat %}btn-primary{% else %}btn-secondary{% endif %}" style="text-transform: capitalize;">
+                {{ cat }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Product Inventory Table -->
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category & Style</th>
+                    <th>Price</th>
+                    <th style="width: 170px;">Stock Control</th>
+                    <th>Visibility</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prod in products %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <img src="{{ prod.image_url }}" alt="{{ prod.name }}" style="width: 60px; height: 50px; object-fit: cover; border-radius: var(--radius-sm);">
+                                <div>
+                                    <strong style="color: var(--text-main); font-size: 0.95rem;">{{ prod.name }}</strong>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                        {{ prod.material }} &bull; {{ prod.colour }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="text-transform: capitalize; font-weight: 500;">{{ prod.category }}</span>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ prod.style }}</div>
+                        </td>
+                        <td style="font-weight: 700; color: var(--accent-olive);">
+                            ₹{{ "{:,}".format(prod.price) }}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('admin.product_stock_update', product_id=prod.id) }}" method="POST" style="display: flex; gap: 0.3rem; align-items: center;">
+                                <input type="number" name="stock" value="{{ prod.stock }}" min="0" class="form-control form-control-sm" style="width: 65px; text-align: center; padding: 0.3rem;">
+                                <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.5rem;" title="Save Stock">
+                                    ✓
+                                </button>
+                                {% if prod.stock <= 0 %}
+                                    <span class="badge badge-rejected" style="font-size: 0.7rem;">Out</span>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td>
+                            {% if prod.is_active %}
+                                <span class="badge badge-approved">Active</span>
+                            {% else %}
+                                <span class="badge badge-outline">Deactivated</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                                <a href="{{ url_for('admin.product_edit', product_id=prod.id) }}" class="btn btn-secondary btn-sm" title="Edit Product">
+                                    ✏️ Edit
+                                </a>
+                                <form action="{{ url_for('admin.product_toggle', product_id=prod.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-sm {% if prod.is_active %}btn-outline{% else %}btn-primary{% endif %}" style="font-size: 0.8rem;">
+                                        {% if prod.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

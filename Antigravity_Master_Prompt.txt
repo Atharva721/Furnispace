@@ -1,0 +1,184 @@
+You are the lead full-stack engineer. Build the FurniSpace application directly in the currently open workspace. Do not merely explain, plan, or generate a mockup. Implement the application, run it, test it, and fix errors.
+
+PROJECT CONTEXT
+FurniSpace: Furniture for Modern Living. It is a college e-commerce project with three defining capabilities:
+1. Online shopping for new furniture.
+2. A moderated second-hand furniture resale marketplace.
+3. "Complete My Room", which recommends a furniture bundle based on room type, style and budget.
+
+The attached project synopsis is the source of truth for the project scope. Preserve its stated stack and boundaries: HTML, CSS, JavaScript, Python Flask and SQLite. Orders are demo orders. There is no real payment gateway or delivery service.
+
+IMPORTANT EXECUTION RULES
+- First inspect all files in the workspace, including the uploaded synopsis and FurniSpace roadmap, if present.
+- Then create a short implementation checklist internally and immediately start coding.
+- Do not stop after producing a plan or asking for approval.
+- Do not ask me questions. Make sensible, conservative decisions and document them.
+- Build a complete, integrated MVP suitable for a one-day individual development effort.
+- Prefer working end-to-end functionality over extra features or elaborate animations.
+- Do not create buttons or links that do nothing. Every visible action must work or be clearly disabled/labeled as unavailable.
+- Do not use fake hardcoded dashboard metrics when real database counts can be queried.
+- Do not claim tests passed unless you actually ran them.
+- Keep the code understandable for a computer science student who must explain it in a project evaluation.
+- Use clear names, comments for important logic, and a simple modular structure.
+- If the workspace already contains useful code, inspect and reuse it instead of blindly overwriting it.
+
+TECHNOLOGY
+- Python 3, Flask, Flask-SQLAlchemy/SQLAlchemy, SQLite.
+- Jinja2 HTML templates, CSS and vanilla JavaScript.
+- Werkzeug password hashing.
+- Bootstrap 5 may be used for responsive components if helpful, but avoid React, Node, MongoDB or unnecessary services.
+- Provide requirements.txt.
+- Use environment-based SECRET_KEY with a safe development fallback and explain it in README.
+- Persist currency as integer paise or Decimal, not binary floating point.
+- Use server-side validation for all important operations.
+
+REQUIRED FEATURES
+
+A. AUTHENTICATION
+- Register, login, logout.
+- Hash passwords; never store plaintext.
+- Roles: customer and admin.
+- Public registration must always create customer accounts.
+- Protect admin routes server-side with role checks.
+- Seed a demo admin account and document its login credentials in README.
+- Use Flask sessions and sensible flash messages.
+
+B. NEW FURNITURE SHOP
+- Seed at least 18 useful sample products across sofas, beds, tables, chairs, wardrobes, storage, lighting and decor.
+- Product fields: name, category, description, price, material, colour, dimensions, stock, image, suitable room types, style and active flag.
+- Product listing, detail, search by name, category filter, price filter and sorting.
+- Product cards show image, name, price and clear actions.
+- Show out-of-stock state and validate requested quantity against stock on the server.
+- Use attractive, reliable image assets. If external image URLs are used, provide graceful fallbacks. Do not let broken images ruin the layout.
+
+C. PRODUCT COMPARISON
+- Compare up to three selected products.
+- Display price, category, material, colour, dimensions and availability side by side.
+- Allow removing items and clearing comparison.
+- Store selections in session; do not require a complex comparison database model.
+
+D. RESALE MARKETPLACE
+- Logged-in customers can submit a used furniture listing with title, description, category, asking price, condition, location/contact details and image.
+- Prefer safe local image uploads with allowed image extensions and secure filenames. Set a reasonable upload size limit. If upload implementation creates a serious blocker, use a validated image URL and document the limitation.
+- New listing status must be Pending.
+- Sellers can view their own listings and statuses.
+- Admin can approve or reject listings.
+- Only Approved listings may be visible publicly.
+- Never trust a client-supplied listing status.
+
+E. COMPLETE MY ROOM
+- Inputs: room type (Bedroom, Living Room, Study Room, Dining Room), budget and style (Modern, Minimalist, Traditional, Contemporary).
+- Implement a deterministic Python rule-based recommendation algorithm. Do not require an external AI API.
+- Use active, in-stock products and their room/style/category attributes.
+- Choose a sensible combination of essential furniture categories for the room, staying at or below the budget.
+- Display recommended items, individual prices, total cost and remaining budget.
+- Allow replacing/removing items and recalculate totals.
+- Allow adding the generated bundle to cart.
+- Never exceed the chosen budget. If no suitable combination exists, show a clear message and useful alternative guidance.
+- If style matches are insufficient, relax style matching transparently but preserve the budget.
+- Keep the algorithm readable and explain it briefly in README.
+
+F. CART, CHECKOUT AND ORDERS
+- Add to cart, update quantity, remove item and display subtotal/total.
+- Validate stock and totals on the server, never trust browser-submitted prices.
+- Checkout collects customer name, phone and delivery address.
+- Clearly label this as a demo checkout/simulated payment. Do not collect card details.
+- Create Order and OrderItem records in a database transaction.
+- Store each item's unit price at purchase time.
+- Reduce stock safely; prevent negative stock.
+- Clear cart only after successful order creation.
+- Display order confirmation and unique order ID.
+- Customers can view only their own orders and order details.
+- Admin can update order status: Placed, Confirmed, Shipped, Delivered or Cancelled. Handle cancellation/stock restoration consistently.
+
+G. ADMIN DASHBOARD
+- Protect all admin routes on the server.
+- Dashboard counts must come from the database: users, active products, orders and pending resale listings.
+- Add/edit/deactivate products and update stock.
+- View orders and update their status.
+- Approve/reject resale listings.
+- Keep the dashboard clear, compact and usable.
+
+DESIGN
+Create a professional, premium but restrained furniture brand website, not a generic student template:
+- Warm off-white / beige background.
+- Charcoal or deep-brown text.
+- Muted olive/green accent.
+- Clean modern typography, generous spacing and strong product photography.
+- Consistent header, navigation, footer, cards, forms and buttons.
+- Responsive desktop and mobile layouts.
+- Clear empty states, loading/validation/error messages and confirmation messages.
+- Keep animations subtle and optional.
+- Use one consistent visual system across customer and admin pages.
+
+REQUIRED PAGES
+Home, Register, Login, Shop, Product Detail, Compare, Resale Marketplace, Submit Listing, My Listings, Complete My Room, Room Recommendations, Cart, Checkout, Order Confirmation, My Orders, Order Detail, Admin Dashboard, Admin Products, Admin Orders, Admin Resale Moderation.
+
+SUGGESTED STRUCTURE
+app.py
+config.py (if useful)
+models.py
+routes/ (auth, shop, resale, room planner, cart/orders, admin)
+templates/ (shared base plus feature pages)
+templates/admin/
+static/css/
+static/js/
+static/images/
+uploads/
+instance/furnispace.db
+requirements.txt
+README.md
+
+You may adjust this structure if a simpler, coherent Flask structure is more reliable. Avoid overengineering or creating many empty files.
+
+IMPLEMENTATION ORDER
+1. Inspect workspace and synopsis.
+2. Set up Flask, configuration, database models and shared layout.
+3. Implement authentication and role protection.
+4. Seed sample products and demo admin.
+5. Implement shop, product details, search, filters and comparison.
+6. Implement cart, demo checkout, orders and stock updates.
+7. Implement resale submission and admin moderation.
+8. Implement Complete My Room recommendation logic and bundle-to-cart flow.
+9. Implement admin product/order management and dashboard.
+10. Polish UI, add README, run tests and fix issues.
+
+TESTING AND COMPLETION
+- Install dependencies if the environment allows.
+- Initialize the database and seed sample data.
+- Run the Flask app and inspect startup errors.
+- Run automated tests where practical, especially authentication/authorization, cart, checkout/stock, resale approval visibility and room budget constraints.
+- Manually exercise the key flows if browser testing is available.
+- Fix tracebacks, broken links, missing templates, incorrect endpoint names and JavaScript console errors where possible.
+- Verify database persistence after restart.
+- Ensure all forms have server-side validation and useful feedback.
+- Add a README with exact setup/run commands, demo admin credentials, database initialization/seed instructions, feature list, test instructions and known limitations.
+- If you cannot execute a test or inspect the browser, state that honestly in README and in your final report.
+
+FINAL ACCEPTANCE SCENARIOS
+1. Customer registers and logs in.
+2. Customer searches/filters products and views a product.
+3. Customer compares up to three products.
+4. Customer adds products to cart, changes quantity and checks out.
+5. Order is saved, appears in that customer's order history, and stock is reduced.
+6. Customer submits a resale listing; it is Pending and not public.
+7. Admin approves it; it becomes publicly visible.
+8. Admin rejects another listing; it stays hidden.
+9. Customer creates a room plan with a budget; recommendations never exceed the budget.
+10. Customer replaces an item and the total recalculates correctly.
+11. Customer adds the room bundle to cart.
+12. Admin manages products, stock and order statuses.
+13. A customer cannot access admin routes or another customer's orders.
+14. Data persists after application restart.
+
+FINAL RESPONSE
+When implementation is complete, report:
+- What was built.
+- Exact command to run it.
+- Local URL.
+- Demo admin credentials.
+- Features actually tested and their results.
+- Any incomplete features or known limitations.
+- Do not claim production readiness. This is a local academic MVP.
+
+Start by inspecting the workspace, then build. Do not stop at the plan.

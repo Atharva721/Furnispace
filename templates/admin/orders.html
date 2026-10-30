@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Orders | FurniSpace Admin{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; margin-bottom: 5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="product-category" style="color: var(--accent-clay);">Fulfillment Center</span>
+            <h1 style="font-size: 2.4rem;">Customer Orders</h1>
+            <p style="color: var(--text-muted);">
+                Review incoming orders, customer details, and update shipping lifecycle statuses.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                &larr; Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.orders', status='all') }}" class="btn btn-sm {% if current_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+            All ({{ orders|length }})
+        </a>
+        {% for st in order_statuses %}
+            <a href="{{ url_for('admin.orders', status=st) }}" class="btn btn-sm {% if current_status == st %}btn-primary{% else %}btn-secondary{% endif %}">
+                {{ st }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Orders Table -->
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer & Shipping</th>
+                        <th>Items</th>
+                        <th>Total Amount</th>
+                        <th style="width: 200px;">Status Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ord in orders %}
+                        <tr>
+                            <td>
+                                <strong style="font-family: monospace; color: var(--accent-olive); display: block;">
+                                    #{{ ord.order_number }}
+                                </strong>
+                                <span style="font-size: 0.8rem; color: var(--text-light);">
+                                    {{ ord.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ ord.customer_name }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">📞 {{ ord.customer_phone }}</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    📍 {{ ord.delivery_address }}
+                                </div>
+                            </td>
+                            <td>
+                                <ul style="list-style: none; padding-left: 0; font-size: 0.85rem;">
+                                    {% for it in ord.items %}
+                                        <li>{{ it.product_name }} &times; {{ it.quantity }} (₹{{ "{:,}".format(it.unit_price) }})</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td style="font-weight: 700; color: var(--accent-olive); font-size: 1.05rem;">
+                                ₹{{ "{:,}".format(ord.total_amount) }}
+                            </td>
+                            <td>
+                                <form action="{{ url_for('admin.order_status_update', order_id=ord.id) }}" method="POST" style="display: flex; gap: 0.4rem; align-items: center;">
+                                    <select name="status" class="form-select form-select-sm" style="font-size: 0.85rem; padding: 0.35rem 0.5rem;">
+                                        {% for st in order_statuses %}
+                                            <option value="{{ st }}" {% if ord.status == st %}selected{% endif %}>{{ st }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.6rem;" title="Save Status">
+                                        ✓
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="card" style="padding: 4rem; text-align: center;">
+            <p style="color: var(--text-muted);">No orders found for this filter.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

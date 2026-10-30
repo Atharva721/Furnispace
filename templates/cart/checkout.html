@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout | FurniSpace{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; max-width: 960px;">
+    <div style="margin-bottom: 2rem;">
+        <span class="product-category">Order Finalization</span>
+        <h1 style="font-size: 2.4rem;">Checkout & Delivery</h1>
+    </div>
+
+    <!-- Prominent Demo Mode Banner -->
+    <div class="card" style="padding: 1.25rem 1.5rem; background-color: #FEF3C7; border-color: #FCD34D; color: #92400E; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
+        <span style="font-size: 2rem;">🛡️</span>
+        <div>
+            <strong style="font-size: 1.05rem; display: block;">Simulated Demo Checkout</strong>
+            <span style="font-size: 0.9rem;">
+                This project is configured for academic and local demonstration. No real payment gateway is integrated and no real currency will be charged. Clicking "Place Order" will atomically deduct database stock and create your permanent order record.
+            </span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('cart.checkout') }}" id="checkout-form">
+        <div class="grid-2" style="gap: 3rem; align-items: start; margin-bottom: 4rem;">
+            <!-- Shipping Information Form -->
+            <div class="card" style="padding: 2.2rem;">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-subtle);">
+                    Shipping & Contact Details
+                </h3>
+
+                <div class="form-group">
+                    <label for="customer_name" class="form-label">Full Name *</label>
+                    <input type="text" id="customer_name" name="customer_name" class="form-control" value="{{ user.full_name or user.username }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="customer_phone" class="form-label">Phone Number *</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" class="form-control" value="{{ user.phone or '' }}" placeholder="+91 98765 43210" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="delivery_address" class="form-label">Delivery Address *</label>
+                    <textarea id="delivery_address" name="delivery_address" class="form-control" style="min-height: 110px;" placeholder="Full street address, building, apartment, city, and postal code..." required>{{ user.address or '' }}</textarea>
+                </div>
+
+                <div style="background-color: var(--bg-muted); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-muted);">
+                    💳 <strong>Payment Method:</strong> Demo Simulated Payment (Instant Approval)
+                </div>
+            </div>
+
+            <!-- Items & Summary -->
+            <div class="card" style="padding: 2.2rem;">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-subtle);">
+                    Items In Your Order
+                </h3>
+
+                <div style="margin-bottom: 1.5rem; max-height: 260px; overflow-y: auto; padding-right: 0.5rem;">
+                    {% for entry in cart_entries %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; gap: 0.8rem; align-items: center;">
+                                <img src="{{ entry.product.image_url }}" alt="{{ entry.product.name }}" style="width: 50px; height: 40px; object-fit: cover; border-radius: var(--radius-sm);">
+                                <div>
+                                    <strong style="font-size: 0.92rem; display: block;">{{ entry.product.name }}</strong>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">Qty: {{ entry.quantity }} &bull; ₹{{ "{:,}".format(entry.product.price) }}</span>
+                                </div>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--accent-olive);">
+                                ₹{{ "{:,}".format(entry.product.price * entry.quantity) }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">Items Subtotal</span>
+                    <span>₹{{ "{:,}".format(total) }}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-size: 0.95rem;">
+                    <span style="color: var(--text-muted);">Delivery Charge</span>
+                    <span style="color: var(--status-success); font-weight: 600;">FREE</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.8rem; padding-top: 1rem; border-top: 2px dashed var(--border-subtle); font-size: 1.3rem; font-weight: 700;">
+                    <span>Grand Total</span>
+                    <span style="color: var(--accent-olive);">₹{{ "{:,}".format(total) }}</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="confirm-order-btn">
+                    Place Demo Order &rarr;
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
