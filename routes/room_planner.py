@@ -44,6 +44,7 @@ def recommend():
                 custom_total = sum(p.price for p in custom_products)
                 if custom_total <= budget:
                     result['items'] = custom_products
+                    result['bundle_items'] = custom_products
                     result['total_price'] = custom_total
                     result['remaining_budget'] = budget - custom_total
                 else:

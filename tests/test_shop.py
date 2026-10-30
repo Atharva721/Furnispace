@@ -53,3 +53,28 @@ def test_product_comparison_limit(client):
     client.get('/compare/remove/1', follow_redirects=True)
     res_after_remove = client.get('/compare')
     assert b"Compare Products (2/3)" in res_after_remove.data
+
+
+def test_advanced_search_and_price_filters(client):
+    """Verifies multi-token search, style filter, and price bounds."""
+    # 1. Multi-token search: "modern sofa" should match the Nordic velvet sofa
+    res_multi = client.get('/shop?q=modern+sofa')
+    assert res_multi.status_code == 200
+    assert b"Nordic Velvet 3-Seater Sofa" in res_multi.data
+
+    # 2. Plural search: "sofas" should match all sofas
+    res_plural = client.get('/shop?q=sofas')
+    assert res_plural.status_code == 200
+    assert b"Nordic Velvet 3-Seater Sofa" in res_plural.data
+
+    # 3. Style filtering: "Minimalist"
+    res_style = client.get('/shop?style=Minimalist')
+    assert res_style.status_code == 200
+    assert b"Kobenhavn Solid Oak Platform Bed" in res_style.data
+
+    # 4. Price range: max_price=10000
+    res_price = client.get('/shop?max_price=10000')
+    assert res_price.status_code == 200
+    # Higher priced sofa (24999) should not appear
+    assert b"Nordic Velvet 3-Seater Sofa" not in res_price.data
+

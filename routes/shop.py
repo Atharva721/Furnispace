@@ -42,16 +42,28 @@ def index():
 
     query = Product.query.filter(Product.is_active.is_(True))
 
+    # Apply category filter
     if category and category != 'all':
         query = query.filter(Product.category == category)
 
+    # Multi-term tokenized search across all product attributes
     if search_query:
-        search_pattern = f"%{search_query}%"
-        query = query.filter(
-            (Product.name.ilike(search_pattern)) | 
-            (Product.description.ilike(search_pattern)) |
-            (Product.material.ilike(search_pattern))
-        )
+        terms = [t.strip().lower() for t in search_query.split() if t.strip()]
+        for term in terms:
+            term_pat = f"%{term}%"
+            # Handle plural/singular variation (e.g. 'sofas' -> 'sofa', 'tables' -> 'table')
+            alt_pat = f"%{term[:-1]}%" if len(term) > 3 and term.endswith('s') else term_pat
+            query = query.filter(
+                (Product.name.ilike(term_pat)) |
+                (Product.name.ilike(alt_pat)) |
+                (Product.description.ilike(term_pat)) |
+                (Product.material.ilike(term_pat)) |
+                (Product.category.ilike(term_pat)) |
+                (Product.category.ilike(alt_pat)) |
+                (Product.style.ilike(term_pat)) |
+                (Product.colour.ilike(term_pat)) |
+                (Product.room_types.ilike(term_pat))
+            )
 
     if min_price is not None:
         query = query.filter(Product.price >= min_price)
@@ -61,6 +73,28 @@ def index():
 
     if style and style != 'All':
         query = query.filter(Product.style == style)
+
+    # Fallback smart search: if searching within a specific category yielded 0 results,
+    # check if items exist across other categories to help the user
+    filtered_count = query.count()
+    searched_all_categories = False
+    if filtered_count == 0 and search_query and category and category != 'all':
+        # Try search across all categories
+        global_query = Product.query.filter(Product.is_active.is_(True))
+        for term in search_query.split():
+            t_pat = f"%{term}%"
+            a_pat = f"%{term[:-1]}%" if len(term) > 3 and term.endswith('s') else t_pat
+            global_query = global_query.filter(
+                (Product.name.ilike(t_pat)) | (Product.name.ilike(a_pat)) |
+                (Product.description.ilike(t_pat)) | (Product.material.ilike(t_pat)) |
+                (Product.category.ilike(t_pat)) | (Product.category.ilike(a_pat)) |
+                (Product.style.ilike(t_pat)) | (Product.colour.ilike(t_pat)) |
+                (Product.room_types.ilike(t_pat))
+            )
+        if global_query.count() > 0:
+            query = global_query
+            category = 'all'
+            searched_all_categories = True
 
     # Sorting
     if sort_by == 'price_asc':

@@ -652,3 +652,16 @@ textarea.form-control {
     display: flex;
   }
 }
+
+@media (max-width: 900px) {
+  #shop-filter-form > div {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  #shop-filter-form > div {
+    grid-template-columns: 1fr !important;
+  }
+}
+

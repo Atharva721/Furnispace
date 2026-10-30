@@ -46,3 +46,22 @@ def test_add_bundle_to_cart(client, app):
     assert res_cart.status_code == 200
     assert b"Nordic Velvet 3-Seater Sofa" in res_cart.data
     assert b"Svalbard Extendable Dining Table" in res_cart.data
+
+
+def test_room_planner_render_recommendation(client):
+    """Verifies that /room-planner/recommend renders successfully via both GET and POST."""
+    # POST
+    res_post = client.post('/room-planner/recommend', data={
+        'room_type': 'Living Room',
+        'budget': 65000,
+        'style': 'Modern'
+    })
+    assert res_post.status_code == 200
+    assert b"Your Modern Living Room Bundle" in res_post.data
+    assert b"Target Budget" in res_post.data
+
+    # GET
+    res_get = client.get('/room-planner/recommend?room_type=Bedroom&budget=70000&style=Minimalist')
+    assert res_get.status_code == 200
+    assert b"Your Minimalist Bedroom Bundle" in res_get.data
+
